@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel de Controle Híbrido | Diagnóstico UF (White Mode)</title>
+  <link href="https://googleapis.com" rel="stylesheet">
+  
+  <style>
+    /* 🌟 WHITE MODE PREMIUM THEME */
+    :root {
+      --bg-global: #F4F4F6;
+      --bg-card: #FFFFFF;
+      --purple-neon: #8A05BE;
+      --purple-dim: #EED6FF;
+      --text-main: #1C1C1E;
+      --text-muted: #6E6E73;
+      --border-card: rgba(138, 5, 190, 0.08);
+      --shadow-clean: 0 4px 20px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+      --status-green: #00C853;
+      --status-yellow: #FFD600;
+      --status-red: #FF1744;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: var(--bg-global);
+      color: var(--text-main);
+      padding: 2rem;
+      overflow-x: hidden;
+    }
+
+    .dashboard-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2.5rem;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      padding-bottom: 1.5rem;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: #000000;
+    }
+
+    h1 span {
+      color: var(--purple-neon);
+    }
+
+    .btn-global {
+      background: var(--purple-neon);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(138, 5, 190, 0.2);
+    }
+
+    .btn-global:hover {
+      background: #70029E;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(138, 5, 190, 0.3);
+    }
+
+    /* 📊 KPI ROW METRICS */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 14px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow-clean);
+    }
+
+    .kpi-card p {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .kpi-card h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #000000;
+    }
+
+    /* 🗂️ GRID DE ESTADOS */
+    .uf-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .uf-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      border-radius: 14px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow-clean);
+      transition: all 0.2s ease;
+    }
+
+    .uf-card:hover {
+      border: 1px solid var(--purple-neon);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+    }
+
+    .uf-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .uf-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #000000;
+    }
+
+    .badge-status {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .bg-green { background-color: var(--status-green); box-shadow: 0 0 8px rgba(0, 200, 83, 0.4); }
+    .bg-yellow { background-color: var(--status-yellow); box-shadow: 0 0 8px rgba(255, 214, 0, 0.4); }
+    .bg-red { background-color: var(--status-red); box-shadow: 0 0 8px rgba(255, 23, 68, 0.4); }
+
+    .sheet-link {
+      display: flex;
+      align-items: center;
+      font-size: 0.85rem;
+      color: var(--purple-neon);
+      margin-bottom: 0.75rem;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .sheet-link:hover {
+      text-decoration: underline;
+    }
+
+    .diagnostic-box {
+      border-top: 1px solid rgba(0, 0, 0, 0.05);
+      margin-top: 1rem;
+      padding-top: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .diagnostic-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.6rem;
+    }
+
+    .diagnostic-item span:first-child {
+      color: var(--text-muted);
+    }
+
+    .diagnostic-item span:last-child {
+      font-weight: 600;
+      color: #000000;
+    }
+
+    .action-row-card {
+      margin-top: 1.25rem;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .btn-action-sm {
+      background: var(--purple-dim);
+      border: none;
+      color: var(--purple-neon);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-action-sm:hover {
+      background: var(--purple-neon);
+      color: white;
+    }
+
+    /* 🚨 MODAL PROGRESSO & LOGS */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    
+    .modal-box {
+      background: #FFFFFF;
+      width: 600px;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .modal-box h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: #000000;
+    }
+    
+    .progress-wrapper {
+      background: #E5E5EA;
+      width: 100%;
+      height: 8px;
+      border-radius: 10px;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: var(--purple-neon);
+      border-radius: 10px;
+      transition: width 0.3s ease;
+    }
+    
+    .terminal-box {
+      background: #1C1C1E;
+      border-radius: 8px;
+      padding: 1rem;
+      height: 200px;
+      overflow-y: auto;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.8rem;
+      color: #00E676;
+      line-height: 1.4;
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
+    
+    .terminal-box .log-err { color: #FF1744; }
+    .terminal-box .log-info { color: #FFD600; }
+
+    .filter-row {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-filter {
+      background: #E5E5EA;
+      color: var(--text-main);
+      border: none;
+      padding: 0.5rem 1.25rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-filter:hover {
+      background: var(--purple-dim);
+      color: var(--purple-neon);
+    }
+
+    .btn-filter.active {
+      background: var(--purple-neon);
+      color: #FFFFFF;
+      box-shadow: 0 4px 12px rgba(138, 5, 190, 0.2);
+    }
+
+    .cells-progress-container {
+      margin-top: 0.6rem;
+      font-size: 0.75rem;
+    }
+    .cells-label-row {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+      font-weight: 500;
+    }
+    .cells-bg-bar {
+      background: #E5E5EA;
+      width: 100%;
+      height: 6px;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .cells-fill-bar {
+      width: 0%;
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.4s ease, background-color 0.4s ease;
+    }
+
+    /* 🚚 ESTILOS ADICIONAIS: SHARE DE TRANSPORTADORAS NO MODAL */
+    .modal-kpi-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      background: #F4F4F6;
+      padding: 1rem;
+      border-radius: 10px;
+      margin-bottom: 1.25rem;
+      border: 1px solid rgba(0,0,0,0.03);
+    }
+    .modal-kpi-pill {
+      background: #FFFFFF;
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      border-left: 3px solid var(--purple-neon);
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      min-width: 140px;
+    }
+    .modal-kpi-title {
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .modal-kpi-value {
+      color: var(--text-main);
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    
+  </style>
+
+  
+</head>
+
+  <body>
+
+  <div class="dashboard-container">
+    <header>
+      <h1><span>SmartCargas | </span>BREAKFAST DIAGNOSTIC PANEL</h1>
+      <button class="btn-global" onclick="carregarDadosGlobais(true)">Atualizar Ecossistema</button>
+    </header>
+
+    <!-- 🌟 INJEÇÃO DA BARRA DE FILTROS REGIONAIS BRASILEIRAS -->
+    <div class="filter-row">
+      <button class="btn-filter active" onclick="filtrarRegiao('TODOS', this)">Todos</button>
+      <button class="btn-filter" onclick="filtrarRegiao('SUDESTE', this)">Sudeste</button>
+      <button class="btn-filter" onclick="filtrarRegiao('SUL', this)">Sul</button>
+      <button class="btn-filter" onclick="filtrarRegiao('NORDESTE', this)">Nordeste</button>
+      <button class="btn-filter" onclick="filtrarRegiao('CENTRO-OESTE', this)">Centro-Oeste</button>
+      <button class="btn-filter" onclick="filtrarRegiao('NORTE', this)">Norte</button>
+
+      <!-- 🚨 NOVA PÍLULA: Botão com estilo de Alerta para filtrar UFs Críticas -->
+      <button class="btn-filter" id="btn-filtro-criticos" onclick="filtrarApenasCriticos(this)" style="border: 1px solid rgba(255, 23, 68, 0.2); color: var(--status-red);">⚠️ Apenas Críticos</button>   
+    </div>
+
+    
+    <!-- 📊 REVISÃO OPERACIONAL: Painel de Controle Expandido para 5 KPIs Globais -->
+    <!-- 📊 PAINEL EXECUTIVO: Proporções Assimétricas Inteligentes (Mais espaço para números, menos para barras) -->
+    <div class="kpi-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1.1fr 0.9fr; gap: 1rem; margin-bottom: 2.5rem;">
+      <div class="kpi-card"><p>Regionais Ativas</p><h2 id="kpi-total-sheets">54</h2></div>
+      <div class="kpi-card"><p>Abas Órfãs Locais</p><h2 id="kpi-total-resgatadas" style="color: var(--purple-neon);">0</h2></div>
+      <div class="kpi-card"><p>Finalização Pendente</p><h2 id="kpi-total-faltantes" style="color: #F57C00;">0</h2></div>
+      <div class="kpi-card"><p>Alertas Críticos</p><h2 id="kpi-total-criticos" style="color: var(--status-red);">0</h2></div>
+      
+      <!-- Card Clicável da Transportadora Crítica -->
+      <div class="kpi-card" id="card-transp-critica" onclick="abrirModalRankingTranspBacklog()" style="cursor: pointer; border: 1px solid rgba(255, 23, 68, 0.15); transition: all 0.2s ease; padding: 1.25rem 1rem;">
+        <p style="color: var(--status-red); font-weight: 700;">🚛 Transp. Crítica (Backlog)</p>
+        <h2 id="kpi-transp-nome" style="font-size: 1.15rem; font-weight: 700; margin-top: 0.4rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main);">Analisando...</h2>
+        <div id="kpi-transp-metrica" style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-top: 0.2rem;">0 Rom. (0%)</div>
+      </div>
+
+      <!-- 🏗️ CARD DE SEGURANÇA OPERACIONAL COMPACTADO (LARGURA ENXUTA) -->
+      <div class="kpi-card" style="border: 1px solid rgba(138, 5, 190, 0.15); padding: 1rem; display: flex; flex-direction: column; justify-content: center; gap: 0.45rem;">
+        <p style="color: var(--purple-neon); font-weight: 700; margin-bottom: 2px; font-size: 0.68rem; letter-spacing: 0.1px; white-space: nowrap;">💾 CAPACIDADE DISPATCH (TETO 10M)</p>
+        
+        <!-- Pílula Progress 1: DISPATCH TEMP -->
+        <div class="cells-progress-container" style="margin-top: 0px;">
+          <div class="cells-label-row" style="margin-bottom: 0.15rem;">
+            <span style="font-weight: 600; color: var(--text-muted); font-size: 0.72rem;">TEMP:</span>
+            <span id="kpi-sat-temp-txt" style="font-weight: 700; font-size: 0.72rem; color: #000;">0K (0%)</span>
+          </div>
+          <div class="cells-bg-bar" style="height: 4px;">
+            <div id="kpi-sat-temp-bar" class="cells-fill-bar" style="width: 0%; height: 100%; background-color: var(--status-green);"></div>
+          </div>
+        </div>
+
+        <!-- Pílula Progress 2: DISPATCH DATABASE -->
+        <div class="cells-progress-container" style="margin-top: 0px;">
+          <div class="cells-label-row" style="margin-bottom: 0.15rem;">
+            <span style="font-weight: 600; color: var(--text-muted); font-size: 0.72rem;">DATABASE:</span>
+            <span id="kpi-sat-db-txt" style="font-weight: 700; font-size: 0.72rem; color: #000;">0K (0%)</span>
+          </div>
+          <div class="cells-bg-bar" style="height: 4px;">
+            <div id="kpi-sat-db-bar" class="cells-fill-bar" style="width: 0%; height: 100%; background-color: var(--status-green);"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    
+    <!-- UF STATES GRID DISPLAY -->
+    <div class="uf-grid" id="grid-estados-uf"></div>
+  </div>
+
+  <!-- CONTAINER DO MODAL DIALÓGICO DE RESGATE -->
+  <!-- 🎯 SUBSTITUA APENAS O RODAPÉ DE BOTÃO DENTRO DA SUA DIV modal-box -->
+  <div class="modal-overlay" id="modal-resgate">
+    <div class="modal-box">
+      <h3 id="modal-titulo">Processando Operação...</h3>
+      <div class="progress-wrapper">
+        <div class="progress-bar" id="barra-progresso"></div>
+      </div>
+      <div class="terminal-box" id="terminal-logs"></div>
+      
+      <!-- 🌟 O NOVO BOTÃO FIXO "FECHAR" COM CLIQUE DIRETO VIA JAVASCRIPT -->
+      <div style="display: flex; justify-content: flex-end;">
+        <button class="btn-global" id="btn-fechar-modal" onclick="document.getElementById('modal-resgate').style.display='none'">FECHAR</button>
+      </div>
+    </div>
+  </div>
+
+    <!-- 🚨 INJETE ESTE BLOCO LOGO ACIMA DA SUA TAG <script> EXISTENTE -->
+<div class="modal-overlay" id="modal-logistica-detalhe">
+  <div class="modal-box" style="width: 1050px; max-width: 95vw;">
+    <h3 id="modal-logistica-titulo" style="color: var(--purple-neon); margin-bottom: 1rem;">Listagem de Romaneios</h3>
+    <div class="terminal-box" id="modal-logistica-conteudo" style="background: #F4F4F6; color: var(--text-main); height: 300px; border: 1px solid rgba(0,0,0,0.05); padding: 1.25rem; overflow-y: auto;">
+      <!-- Os romaneios entrarão aqui em tempo real -->
+    </div>
+      <!-- 🎯 SUBSTITUA APENAS A DIV DE BOTÕES NO RODAPÉ DO MODAL DE LOGÍSTICA DE DETALHE -->
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+        <button class="btn-action-sm" onclick="exportarTabelaModalParaCSV()" style="background: var(--purple-dim); color: var(--purple-neon); padding: 0.75rem 1.5rem; font-size: 0.85rem;">📥 Exportar Tabela (.CSV)</button>
+        <button class="btn-global" onclick="document.getElementById('modal-logistica-detalhe').style.display='none'">FECHAR LISTA</button>
+      </div>
+  </div>
+</div>
+
+    
+  <script>
+
+    // =========================================================================
+    // 💾 CACHE DO ECOSSISTEMA & DICIONÁRIO GEOGRÁFICO (ESCOPO GLOBAL RAM)
+    // =========================================================================
+    // Armazena temporariamente os dados retornados da API para fatiamento sem travar a rede
+    let cacheDadosEcosistema = [];
+
+    // Mapeamento geográfico oficial dos estados brasileiros por sigla UF
+    const MAPA_REGIOES_BR = {
+      'SP': 'SUDESTE', 'RJ': 'SUDESTE', 'MG': 'SUDESTE', 'ES': 'SUDESTE',
+      'PR': 'SUL', 'SC': 'SUL', 'RS': 'SUL',
+      'BA': 'NORDESTE', 'PE': 'NORDESTE', 'CE': 'NORDESTE', 'MA': 'NORDESTE', 
+      'PB': 'NORDESTE', 'RN': 'NORDESTE', 'AL': 'NORDESTE', 'SE': 'NORDESTE', 
+      'PI': 'NORDESTE',
+      'MT': 'CENTRO-OESTE', 'MS': 'CENTRO-OESTE', 'GO': 'CENTRO-OESTE', 
+      'DF': 'CENTRO-OESTE',
+      'AM': 'NORTE', 'PA': 'NORTE', 'RO': 'NORTE', 'RR': 'NORTE', 
+      'AC': 'NORTE', 'TO': 'NORTE', 'AP': 'NORTE'
+    };
+    // =========================================================================
+
+    
+    // 🌟 LINK WEB APP CENTRALIZADO: Substitua pela URL gerada no deploy do seu Apps Script
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyGFR5tZicDgcl-dTslCI5vfdtYY6EMpOuQ9eGfcbCuHM-RsVLVNWrGbRTLdMWImM5aPA/exec"; //Perfil 1
+  //const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxhN3DYLc17sloBp5EXFzEdGFe0lGfV_Gz2bpiRH5R2OkBLL1hr8aYhIx5Jus-fnSyt/exec"; //Perfil 2
+
+
+    // 🎯 ENGINE HÍBRIDA CALIBRADA: Aceita o parâmetro para forçar atualização no servidor
+    function carregarDadosGlobais(forcarAtualizacaoDrive = false) {
+      const grid = document.getElementById("grid-estados-uf");
+      const modal = document.getElementById("modal-resgate");
+      const barra = document.getElementById("barra-progresso");
+      const terminal = document.getElementById("terminal-logs");
+      
+      document.getElementById("modal-titulo").innerText = forcarAtualizacaoDrive ? "Forçando Update..." : "Sincronizando Central SmartCargas";
+      modal.style.display = "flex";
+      barra.style.width = "15%";
+      barra.style.background = "var(--purple-neon)";
+      
+      terminal.innerHTML = `[${new Date().toLocaleTimeString()}] 📡 Conectando na malha de servidores...<br>`;
+      grid.innerHTML = "<div style='grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3rem; font-weight: 500;'>📡 Conectando e consolidando a malha de estados em RAM...</div>";
+
+      // 🎯 ACPLAMENTO DE ALTA PERFORMANCE: Adiciona o cache-buster e configura o modo de redirecionamento nativo
+      const urlFinalRequest = WEB_APP_URL + "?action=obterDiagnosticoGlobal&force=" + forcarAtualizacaoDrive + "&_cb=" + Date.now();
+
+      fetch(urlFinalRequest, {
+        method: "GET",
+        mode: "cors", // 🌟 FORÇA O NAVEGADOR A ACEITAR A POLÍTICA DE DIRECIONAMENTO
+        redirect: "follow" // 🌟 OBRIGA O FETCH A SEGUIR O REDIRECIONAMENTO 302 DO GOOGLE PARA A URL SECUNDÁRIA
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error("Servidor ocupado ou instabilidade de cache (Status: " + response.status + ")");
+          }
+          return response.json();
+        })
+        .then(dados => {
+          if(!dados.success) {
+            barra.style.width = "100%"; barra.style.background = "var(--status-red)";
+            terminal.innerHTML += `[${new Date().toLocaleTimeString()}] <span class="log-err">[ERRO]</span> Falha do Servidor: ${dados.error}<br>`;
+            grid.innerHTML = `<div style='grid-column: 1/-1; text-align: center; color: var(--status-red); padding: 3rem; font-weight: 600;'>Erro no Servidor: ${dados.error}</div>`;
+            return;
+          }
+          
+          cacheDadosEcosistema = dados.data;
+          barra.style.width = "100%";
+          barra.style.background = "var(--status-green)";
+          terminal.innerHTML += `[${new Date().toLocaleTimeString()}] <span style="color: #00E676;">[SUCESSO]</span> Dados estruturais consolidados in RAM.<br>`;
+          
+          resetarBotoesFiltro();
+          renderizarCards(cacheDadosEcosistema);
+          calcularKPIDinamicos(cacheDadosEcosistema);
+          
+          setTimeout(() => { modal.style.display = "none"; }, 1000);
+        })
+        .catch(err => {
+          barra.style.width = "100%"; barra.style.background = "var(--status-red)";
+          terminal.innerHTML += `[${new Date().toLocaleTimeString()}] <span class="log-err">[ALERTA]</span> Canal instável: Re-tentando conexao...<br>`;
+          terminal.scrollTop = terminal.scrollHeight;
+          
+          grid.innerHTML = "<div style='grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3rem; font-weight: 500;'>📡 Google processando pacotes. Aguardando canal operacional...</div>";
+          
+          // Mantém a re-tentativa passando o mesmo estado do gatilho
+          setTimeout(() => { carregarDadosGlobais(forcarAtualizacaoDrive); }, 5000);
+        });
+    }
+
+
+
+    // 🚀 ENGINE DE FILTRAGEM RELÂMPAGO
+    function filtrarRegiao(regiaoAlvo, botaoClicado) {
+      // Altera o estado visual dos botões de filtro
+      document.querySelectorAll('.btn-filter').forEach(btn => btn.classList.remove('active'));
+      botaoClicado.classList.add('active');
+
+      if (regiaoAlvo === 'TODOS') {
+        renderizarCards(cacheDadosEcosistema);
+        return;
+      }
+
+      // Filtra as UFs na memória RAM baseando-se no dicionário geográfico
+      const listaFiltrada = cacheDadosEcosistema.filter(uf => {
+        const regiaoUf = MAPA_REGIOES_BR[uf.sigla.toUpperCase()] || 'OUTROS';
+        return regiaoUf === regiaoAlvo;
+      });
+
+      renderizarCards(listaFiltrada);
+    }
+
+    // 🚀 ENGINE DE FILTRAGEM TÁTICA: Varre o cache RAM e exibe apenas UFs com Alertas > 0
+    function filtrarApenasCriticos(botaoClicado) {
+      // Limpa o destaque visual de todas as outras pílulas regionais
+      document.querySelectorAll('.btn-filter').forEach(btn => btn.classList.remove('active'));
+      
+      // Destaca o botão de Alertas Críticos com o visual roxo de seleção
+      botaoClicado.classList.add('active');
+
+      // Filtra de forma relâmpago na memória RAM apenas registros onde criticos > 0
+      const listaCritica = cacheDadosEcosistema.filter(uf => {
+        return parseInt(uf.criticos) > 0;
+      });
+
+      // Redesenha os cards na tela com o novo lote filtrado
+      renderizarCards(listaCritica);
+    }
+    
+
+    function resetarBotoesFiltro() {
+      document.querySelectorAll('.btn-filter').forEach(btn => btn.classList.remove('active'));
+      const btnTodos = document.querySelector(".filter-row button");
+      if (btnTodos) btnTodos.classList.add('active');
+    }
+
+    // Ajuste da carga inicial reativa síncrona conectada ao cache
+    // =========================================================================
+    // 🎯 INTERFACE MASTER: CARREGAMENTO INICIAL INTELIGENTE HÍBRIDO (ANTI-LOOP)
+    // =========================================================================
+    window.onload = function() {
+      // 🟢 REGRA DE OURO: Invoca a carga resiliente nativa configurada para ler o cache estático.
+      // Isso impede que o Index tente forçar o robô pesado de emergência no Drive sem necessidade!
+      carregarDadosGlobais(false);
+    };
+
+
+    // 🎯 FORMATADOR DE DATA PREMIUM BRASILEIRO (dd/MM/yyyy HH:mm:ss)
+    function formatarDataBR(dataString) {
+      if (!dataString || dataString === "Sem registro" || dataString === "ERRO DE CONEXÃO") return dataString;
+      try {
+        const dataObj = new Date(dataString);
+        if (isNaN(dataObj.getTime())) return dataString;
+        const dia = String(dataObj.getDate()).padStart(2, '0');
+        const mes = String(dataObj.getMonth() + 1).padStart(2, '0');
+        const ano = dataObj.getFullYear();
+        const hora = String(dataObj.getHours()).padStart(2, '0');
+        const minuto = String(dataObj.getMinutes()).padStart(2, '0');
+        const segundo = String(dataObj.getSeconds()).padStart(2, '0');
+        return `${dia}/${mes}/${ano} ${hora}:${minuto}:${segundo}`;
+      } catch (e) { return dataString; }
+    }
+
+    // 🚀 INTERFACE ANALÍTICA: Calcula porcentagens base zero e monta as tabelas com links interativos
+    // 🚀 ENGINE ANALÍTICA: Renderiza a árvore estrutural dos cards com as equações de Dispatch %
+    // 🚀 ENGINE ANALÍTICA BLINDADA: Concatenação pura via operador (+), livre de erros de crase ou aspas
+    // 🚀 ENGINE ANALÍTICA REVISADA: Concatenação 100% fechada, sem cortes e livre de erros de sintaxe
+    // 🚀 ENGINE ANALÍTICA SURGICAL: Concatenação pura estável, livre de erros de aspas/crases
+    // 🚀 ENGINE ANALÍTICA COMPLETA: Inclui fatiamento de Dispatch % e o Monitor de 10M de Células blindado
+    // 🚀 ENGINE ANALÍTICA REVISADA: Estrutura tripartite completa (Backlog, Dia e Estrutura) integrada
+    // 🚀 ENGINE RECALIBRADA PARTE 1: Equações em RAM e Algoritmo Tripartite de Cores
+    function renderizarCards(listaUfs) {
+      const grid = document.getElementById("grid-estados-uf");
+      grid.innerHTML = "";
+      
+      listaUfs.forEach((uf, index) => {
+        const dataFormatadaPronta = formatarDataBR(uf.atualizado_em);
+        
+        // 🎯 INICIALIZAÇÃO SEGURA: Previne quebras caso o balde ontem ainda não tenha sido processado por alguma UF
+        const da = uf.detalhes_analiticos || { 
+          dia: { concluidos: [], parciais: [], pendentes: [] }, 
+          ontem: { concluidos: [], parciais: [], pendentes: [] },
+          backlog: { concluidos: [], parciais: [], pendentes: [] }, 
+          celulas_conf_total: 0 
+        };
+        
+        // 📊 OPERAÇÃO DO DIA
+        const totalDia = da.dia.concluidos.length + da.dia.parciais.length + da.dia.pendentes.length;
+        const pConcluidosDia = totalDia > 0 ? Math.round((da.dia.concluidos.length / totalDia) * 100) : 0;
+        const pParciaisDia   = totalDia > 0 ? Math.round((da.dia.parciais.length / totalDia) * 100) : 0;
+        const pPendentesDia  = totalDia > 0 ? Math.round((da.dia.pendentes.length / totalDia) * 100) : 0;
+
+        const qPresosDia = [...da.dia.concluidos, ...da.dia.parciais, ...da.dia.pendentes].filter(c => !c.dispatch || c.dispatch === "Aguardando" || c.dispatch.toString().trim() === "").length;
+        const pDispatchedDia = totalDia > 0 ? Math.round(((totalDia - qPresosDia) / totalDia) * 100) : 0;
+
+        // 📊 OPERAÇÃO DO BACKLOG
+        const totalBacklog = da.backlog.concluidos.length + da.backlog.parciais.length + da.backlog.pendentes.length;
+        const pParciaisBacklog   = totalBacklog > 0 ? Math.round((da.backlog.parciais.length / totalBacklog) * 100) : 0;
+        const pPendentesBacklog  = totalBacklog > 0 ? Math.round((da.backlog.pendentes.length / totalBacklog) * 100) : 0;
+
+        const qPresosBacklog = [...da.backlog.concluidos, ...da.backlog.parciais, ...da.backlog.pendentes].filter(c => !c.dispatch || c.dispatch === "Aguardando" || c.dispatch.toString().trim() === "").length;
+        const pDispatchedBacklog = totalBacklog > 0 ? Math.round(((totalBacklog - qPresosBacklog) / totalBacklog) * 100) : 0;
+
+        // =========================================================================
+        // 📊 EQUAÇÕES MATEMÁTICAS EM RAM: OPERAÇÃO DE ONTEM & FDS (EXPANDIDO)
+        // =========================================================================
+        const totalOntem = (da.ontem ? da.ontem.concluidos.length : 0) + (da.ontem ? da.ontem.parciais.length : 0) + (da.ontem ? da.ontem.pendentes.length : 0);
+        
+        // 🎯 Injeção Cirúrgica: Puxa e calcula o share de Concluídos do balde de Ontem
+        const totalConcluidosOntem = da.ontem ? da.ontem.concluidos.length : 0;
+        const pConcluidosOntem = totalOntem > 0 ? Math.round((totalConcluidosOntem / totalOntem) * 100) : 0;
+        
+        const totalParciaisOntem = da.ontem ? da.ontem.parciais.length : 0;
+        const totalPendentesOntem = da.ontem ? da.ontem.pendentes.length : 0;
+        const pParciaisOntem   = totalOntem > 0 ? Math.round((totalParciaisOntem / totalOntem) * 100) : 0;
+        const pPendentesOntem  = totalOntem > 0 ? Math.round((totalPendentesOntem / totalOntem) * 100) : 0;
+      
+        const qPresosOntem = da.ontem ? [...da.ontem.concluidos, ...da.ontem.parciais, ...da.ontem.pendentes].filter(c => !c.dispatch || c.dispatch === "Aguardando" || c.dispatch.toString().trim() === "").length : 0;
+        const pDispatchedOntem = totalOntem > 0 ? Math.round(((totalOntem - qPresosOntem) / totalOntem) * 100) : 0;
+        const corContadorOntem = qPresosOntem > 0 ? 'color: var(--status-red); font-weight: 800;' : 'color: var(--text-muted);';
+        
+        // 🏗️ MONITOR DE CAPACIDADE CELULAR ISOLADO (TETO 10 MILHÕES)
+        const totalCelulas = da.celulas_conf_total || 0;
+        const pConsumo = Math.min(Math.round((totalCelulas / 10000000) * 100), 100);
+        
+        let corBarra = 'var(--status-green)';
+        if (pConsumo >= 90) corBarra = 'var(--status-red)';
+        else if (pConsumo >= 70) corBarra = '#F57C00'; 
+        
+        let textoCelulas = totalCelulas >= 1000000 ? (totalCelulas / 1000000).toFixed(1) + 'M' : (totalCelulas / 1000).toFixed(0) + 'K';
+        
+        const estiloCorBarra = 'width: ' + pConsumo + '%; background-color: ' + corBarra + ';';
+        const estiloTextoPreco = 'font-weight:700; color:' + corBarra + ';';
+
+        let htmlBarraCelulas = '<div class="cells-progress-container">' +
+                                 '<div class="cells-label-row">' +
+                                   '<span>Consumo (Painel):</span>' +
+                                   '<span style="' + estiloTextoPreco + '">' + textoCelulas + ' (' + pConsumo + '%)</span>' +
+                                 '</div>' +
+                                 '<div class="cells-bg-bar">' +
+                                   '<div class="cells-fill-bar" style="' + estiloCorBarra + '"></div>' +
+                                 '</div>' +
+                               '</div>';
+
+        // =========================================================================
+        // 🎯 ALGORITMO CROMÁTICO EM CASCATA REVISADO (REGRAS EXECUTIVAS)
+        // =========================================================================
+        let corClasse = 'bg-green'; 
+
+        // 🟡 TESTE 1: Concentração de faturamento do DIA ou ONTEM (Sinal Amarelo de Fluxo Ativo)
+        if (da.dia.parciais.length > 0 || da.dia.pendentes.length > 0 || totalParciaisOntem > 0 || totalPendentesOntem > 0) {
+          corClasse = 'bg-yellow';
+        }
+
+        // 🔴 TESTE 2: Critério de Gravidade Máxima (Sobrepõe e força o Vermelho se houver bloqueio real)
+        if (
+          da.backlog.parciais.length > 0 || da.backlog.pendentes.length > 0 || qPresosBacklog > 0 || 
+          qPresosOntem > 0 ||                                                                        
+          qPresosDia > 0 ||                                                                          
+          (parseInt(uf.orfas) || 0) > 0 || (parseInt(uf.faltantes) || 0) > 0 ||                     
+          (da.falhas_contingencia_lista || []).length > 0 || (da.falhas_limpeza_lista || []).length > 0
+        ) {
+          corClasse = 'bg-red';
+        }
+
+        // =========================================================================
+        // 📥 CONCATENAÇÃO STRÍNGEA COMPLETA E UNIFICADA (PARTE 2)
+        // =========================================================================
+        const corContadorBacklog = qPresosBacklog > 0 ? 'color: var(--status-red); font-weight: 800;' : 'color: var(--text-muted);';
+        const corContadorDia = qPresosDia > 0 ? 'color: var(--status-red); font-weight: 800;' : 'color: var(--text-muted);';
+
+        let cardHtml = '<div class="uf-card">' +
+            '<div class="uf-header">' +
+              '<div class="uf-title">' + uf.nome_estado + ' (' + uf.sigla + ')</div>' +
+              '<span class="badge-status ' + corClasse + '"></span>' +
+            '</div>' +
+            
+            '<a href="https://google.com' + uf.id_planilha_prod + '" target="_blank" class="sheet-link">🔗 Planilha Produção</a>' +
+            
+            /* 📅 QUADRANTE 1: ROMANEIOS / BACKLOG HISTÓRICO */
+            '<div class="diagnostic-box" style="margin-top:0.5rem; padding-top:0.5rem;">' +
+              '<div style="font-weight:700; font-size:0.85rem; margin-bottom:0.4rem; color:var(--purple-neon);">📅 ROMANEIOS / BACKLOG HISTÓRICO</div>' +
+              '<div class="diagnostic-item"><span>Parciais:</span><a href="#" class="sheet-link" onclick="abrirJanelaLogistica(\'' + uf.sigla + '\', \'backlog\', \'parciais\'); return false;" style="color:#F57C00;">' + pParciaisBacklog + '% (' + da.backlog.parciais.length + ')</a></div>' +
+              '<div class="diagnostic-item"><span>Pendentes:</span><a href="#" class="sheet-link" onclick="abrirJanelaLogistica(\'' + uf.sigla + '\', \'backlog\', \'pendentes\'); return false;" style="color:var(--status-red);">' + pPendentesBacklog + '% (' + da.backlog.pendentes.length + ')</a></div>' +
+              '<div class="diagnostic-item" style="border-top: 1px dashed rgba(0,0,0,0.03); margin-top: 0.3rem; padding-top: 0.3rem;">' +
+                '<span>Dispatched:</span><a href="#" class="sheet-link" onclick="abrirJanelaLogisticaEspecial(\'' + uf.sigla + '\', \'backlog\'); return false;" style="color:#00C853; font-weight:700;">' + 
+                  pDispatchedBacklog + '% <span style="color:var(--text-muted); font-weight:400; margin:0 0.2rem;">/</span> <span style="' + corContadorBacklog + '">' + qPresosBacklog + '</span>' +
+                '</a>' +
+              '</div>' +
+            '</div>' +
+
+          
+            /* 📅 QUADRANTE 1.2: ROMANEIOS / ONTEM (NOVO BALDE EXPANDIDO) */
+            '<div class="diagnostic-box" style="margin-top:0.5rem; padding-top:0.5rem; border-top:1px solid rgba(0,0,0,0.03);">' +
+              '<div style="font-weight:700; font-size:0.85rem; margin-bottom:0.4rem; color:var(--purple-neon);">🗓️ ROMANEIOS / ONTEM & FDS</div>' +
+              
+              /* 🎯 NOVO LINK DIRETAMENTE CONECTADO ÀS CARGAS CONCLUÍDAS DE ONTEM */
+              '<div class="diagnostic-item"><span>Concluídos:</span><a href="#" class="sheet-link" onclick="abrirJanelaLogistica(\'' + uf.sigla + '\', \'ontem\', \'concluidos\'); return false;">' + pConcluidosOntem + '% (' + totalConcluidosOntem + ')</a></div>' +
+              
+              '<div class="diagnostic-item"><span>Parciais:</span><a href="#" class="sheet-link" onclick="abrirJanelaLogistica(\'' + uf.sigla + '\', \'ontem\', \'parciais\'); return false;" style="color:#F57C00;">' + pParciaisOntem + '% (' + totalParciaisOntem + ')</a></div>' +
+              '<div class="diagnostic-item"><span>Pendentes:</span><a href="#" class="sheet-link" onclick="abrirJanelaLogistica(\'' + uf.sigla + '\', \'ontem\', \'pendentes\'); return false;" style="color:var(--status-red);">' + pPendentesOntem + '% (' + totalPendentesOntem + ')</a></div>' +
+              '<div class="diagnostic-item" style="border-top: 1px dashed rgba(0,0,0,0.03); margin-top: 0.3rem; padding-top: 0.3rem;">' +
+                '<span>Dispatched:</span><a href="#" class="sheet-link" onclick="abrirJanelaLogisticaEspecial(\'' + uf.sigla + '\', \'ontem\'); return false;" style="color:#00C853; font-weight:700;">' + 
+                  pDispatchedOntem + '% <span style="color:var(--text-muted); font-weight:400; margin:0 0.2rem;">/</span> <span style="' + corContadorOntem + '">' + qPresosOntem + '</span>' +
+                '</a>' +
+              '</div>' +
+            '</div>' +
+
+
+            /* ☀️ QUADRANTE 2: ROMANEIOS / DIA */
+            '<div class="diagnostic-box" style="margin-top:0.5rem; padding-top:0.5rem; border-top:1px solid rgba(0,0,0,0.03);">' +
+              '<div style="font-weight:700; font-size:0.85rem; margin-bottom:0.4rem; color:var(--purple-neon);">☀️ ROMANEIOS / DIA</div>' +
+              '<div class="diagnostic-item"><span>Concluídos:</span><a href="#" class="sheet-link" onclick="abrirJanelaLogistica(\'' + uf.sigla + '\', \'dia\', \'concluidos\'); return false;">' + pConcluidosDia + '% (' + da.dia.concluidos.length + ')</a></div>' +
+              '<div class="diagnostic-item"><span>Parciais:</span><a href="#" class="sheet-link" onclick="abrirJanelaLogistica(\'' + uf.sigla + '\', \'dia\', \'parciais\'); return false;" style="color:#F57C00;">' + pParciaisDia + '% (' + da.dia.parciais.length + ')</a></div>' +
+              '<div class="diagnostic-item"><span>Pendentes:</span><a href="#" class="sheet-link" onclick="abrirJanelaLogistica(\'' + uf.sigla + '\', \'dia\', \'pendentes\'); return false;" style="color:var(--status-red);">' + pPendentesDia + '% (' + da.dia.pendentes.length + ')</a></div>' +
+              '<div class="diagnostic-item" style="border-top: 1px dashed rgba(0,0,0,0.03); margin-top: 0.3rem; padding-top: 0.3rem;">' +
+                '<span>Dispatched:</span><a href="#" class="sheet-link" onclick="abrirJanelaLogisticaEspecial(\'' + uf.sigla + '\', \'dia\'); return false;" style="color:#00C853; font-weight:700;">' + 
+                  pDispatchedDia + '% <span style="color:var(--text-muted); font-weight:400; margin:0 0.2rem;">/</span> <span style="' + corContadorDia + '">' + qPresosDia + '</span>' +
+                '</a>' +
+              '</div>' +
+            '</div>' +
+
+            /* 🏗️ QUADRANTE 3: ESTRUTURA CONTROLE CUSTOMIZADO */
+            '<div class="diagnostic-box" style="margin-top:0.5rem; padding-top:0.5rem; border-top:1px solid rgba(0,0,0,0.03);">' +
+              '<div style="font-weight:700; font-size:0.85rem; margin-bottom:0.4rem; color:var(--text-muted);">🏗️ ESTRUTURA</div>' +
+              
+              '<div class="diagnostic-item"><span>Romaneios Ativos/UF:</span><a href="#" class="sheet-link" onclick="abrirJanelaEstruturaDetalhe(\'' + uf.sigla + '\', \'abas_ativas_lista\', \'ROMANEIOS ATIVOS NA TABELA\'); return false;" style="color:var(--text-main); font-weight: 600;">' + uf.abas_existentes + '</a></div>' +
+              '<div class="diagnostic-item"><span>Romaneios Não Migrados (Painel):</span><a href="#" class="sheet-link" onclick="abrirJanelaEstruturaDetalhe(\'' + uf.sigla + '\', \'abas_orfas_lista\', \'ABAS ÓRFÃS LOCAIS DETECTADAS\'); return false;" style="' + (uf.orfas > 0 ? 'color: #D32F2F; font-weight: 700;' : 'color: var(--text-muted); font-weight: 500;') + '">' + uf.orfas + '</a></div>' +
+              '<div class="diagnostic-item"><span>Finalização Pendente (Painel):</span><a href="#" class="sheet-link" onclick="abrirJanelaEstruturaDetalhe(\'' + uf.sigla + '\', \'faltantes_master_lista\', \'ROMANEIOS FALTANTES NA MASTER\'); return false;" style="' + (uf.faltantes > 0 ? 'color: #E65100; font-weight: 700;' : 'color: var(--text-muted); font-weight: 500;') + '">' + uf.faltantes + '</a></div>' +
+              
+              '<div class="diagnostic-item"><span>Contingência/Falhas:</span><a href="#" class="sheet-link" onclick="abrirJanelaFalhasProcesso(\'' + uf.sigla + '\', \'falhas_contingencia_lista\'); return false;" style="' + ((da.falhas_contingencia_lista || []).length > 0 ? 'color: var(--status-red); font-weight: 700;' : 'color: var(--text-muted); font-weight: 500;') + '">' + (da.falhas_contingencia_lista || []).length + '</a></div>' +
+              '<div class="diagnostic-item"><span>Limpeza/Falhas:</span><a href="#" class="sheet-link" onclick="abrirJanelaFalhasProcesso(\'' + uf.sigla + '\', \'falhas_limpeza_lista\'); return false;" style="' + ((da.falhas_limpeza_lista || []).length > 0 ? 'color: var(--status-red); font-weight: 700;' : 'color: var(--text-muted); font-weight: 500;') + '">' + (da.falhas_limpeza_lista || []).length + '</a></div>' +
+
+              htmlBarraCelulas +
+
+              '<div class="diagnostic-item" style="border-top: 1px dashed #E5E5EA; margin-top:0.6rem; padding-top:0.4rem; font-size:0.75rem;">' +
+                '<span>Atualizado em:</span><span style="font-weight:500; color:var(--text-muted);">' + dataFormatadaPronta + '</span>' +
+              '</div>' +
+            '</div>' +
+
+            '<div class="action-row-card">' +
+              '<button class="btn-action-sm" onclick="forcarResgateLocal(\'' + uf.sigla + '\', \'' + uf.id_planilha_prod + '\')">Resgatar Órfãs</button>' +
+            '</div>' +
+          '</div>';
+          
+        grid.innerHTML += cardHtml;
+      });
+    }
+
+
+
+
+
+
+    // 🌟 CONTROLADOR REATIVO EXPANDIDO: Abre a lista forense com as 6 colunas logísticas em RAM
+    // 🌟 INTERFACE EXPANDIDA: Monta o grid forense com as 6 colunas logísticas em RAM
+    // 🌟 INTERFACE TOTALMENTE BLINDADA: Monta a grade analítica de 6 colunas livre de quebras por aspas
+    // 🌟 INTERFACE EXPANDIDA BLINDADA: Busca por Sigla UF para erradicar o bug pós-filtro regional
+    function abrirJanelaLogistica(ufSigla, tipoPeriodo, categoriaStatus) {
+      // 🎯 CONVERSÃO SEGURO: Força o parâmetro recebido a virar String pura antes de rodar o toUpperCase()
+      const siglaTextoStr = String(ufSigla).trim().toUpperCase();
+      
+      const ufAlvo = cacheDadosEcosistema.find(uf => uf.sigla.toUpperCase() === siglaTextoStr);
+      if (!ufAlvo) return;
+    
+      const listaCargas = ufAlvo.detalhes_analiticos[tipoPeriodo][categoriaStatus] || [];
+      document.getElementById("modal-logistica-titulo").innerText = `${ufAlvo.nome_estado} (${ufAlvo.sigla}) - ${tipoPeriodo.toUpperCase()} [${categoriaStatus.toUpperCase()}]`;
+      const caixaConteudo = document.getElementById("modal-logistica-conteudo");
+    
+      if (listaCargas.length === 0) {
+        caixaConteudo.innerHTML = `<div style="text-align:center; padding-top:4rem; color:var(--text-muted); font-weight:500;">Nenhum romaneio ativo mapeado nesta categoria.</div>`;
+      } else {
+        // =========================================================================
+        // 📊 BALDE ANALÍTICO DE SHARE EM RAM: SOMA VOLUMETRIA DE TRANSPORTADORAS
+        // =========================================================================
+        let mapaTransp = {};
+        listaCargas.forEach(c => {
+          let tName = c.transp || "Não Informada";
+          mapaTransp[tName] = (mapaTransp[tName] || 0) + 1;
+        });
+
+        // Montagem do contêiner horizontal de pílulas estatísticas
+        let htmlKpis = `<div class="modal-kpi-container">
+                          <div class="modal-kpi-pill">
+                            <span class="modal-kpi-title">Total Geral</span>
+                            <span class="modal-kpi-value"><span>${listaCargas.length} Rom.</span></span>
+                          </div>`;
+        
+        for (let t in mapaTransp) {
+          let pct = Math.round((mapaTransp[t] / listaCargas.length) * 100);
+          htmlKpis += `<div class="modal-kpi-pill">
+                         <span class="modal-kpi-title" title="${t}">${t.length > 18 ? t.substring(0,16) + '...' : t}</span>
+                         <span class="modal-kpi-value">
+                           <span>${mapaTransp[t]}</span>
+                           <span style="color:var(--purple-neon);">${pct}%</span>
+                         </span>
+                       </div>`;
+        }
+        htmlKpis += `</div>`;
+
+        let tabelaHtml = htmlKpis + `<table style="width:100%; border-collapse:collapse; font-size:0.82rem; text-align:left;">
+                            <thead>
+                              <tr style="border-bottom:2px solid rgba(0,0,0,0.08); color:var(--purple-neon); font-weight:700;">
+                                <th style="padding:0.6rem 0.4rem;">📦 ID ROMANEIO</th>
+                                <th style="padding:0.6rem 0.4rem;">🚛 TRANSPORTADORA</th>
+                                <th style="padding:0.6rem 0.4rem; text-align:center;">📋 PEDIDOS</th>
+                                <th style="padding:0.6rem 0.4rem;">⚠️ INTERCORRÊNCIA</th>
+                                <th style="padding:0.6rem 0.4rem;">📅 DT IMPORT</th>
+                                <th style="padding:0.6rem 0.4rem;">⚡ DISPATCH</th>
+                              </tr>
+                            </thead>
+                            <tbody>`;
+        
+        listaCargas.forEach(c => {
+          let textoCompleto = c.intercorrencia || "Sem ocorrências";
+          let textoOcorrencia = textoCompleto;
+          
+          if (textoCompleto.length > 40) {
+            textoOcorrencia = textoCompleto.substring(0, 37) + "...";
+          }
+    
+          let textoTituloEscapado = textoCompleto.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+          let textoCurtoEscapado = textoOcorrencia.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    
+          tabelaHtml += `<tr style="border-bottom:1px solid rgba(0,0,0,0.04); font-weight:500; vertical-align:top;">
+                           <td style="padding:0.6rem 0.4rem; font-weight:700; font-family:monospace;">${c.romaneio || "Sem ID"}</td>
+                           <td style="padding:0.6rem 0.4rem; color:#333;">${c.transp || "Não Informada"}</td>
+                           <td style="padding:0.6rem 0.4rem; text-align:center; font-weight:600; color:var(--purple-neon);">${c.pedidos || 0}</td>
+                           
+                           <td style="padding:0.6rem 0.4rem; max-width:320px; color:var(--text-muted); font-size:0.78rem; cursor:pointer;" 
+                               title="${textoTituloEscapado}" 
+                               data-short="${textoCurtoEscapado}"
+                               data-full="${textoTituloEscapado}"
+                               data-open="0"
+                               onclick="alternarTextoOcorrencia(this)">
+                             ${textoOcorrencia}
+                           </td>
+                           
+                           <td style="padding:0.6rem 0.4rem; color:#111; font-size:0.78rem; white-space:nowrap;">${c.dt_import || "Sem registro"}</td>
+                           <td style="padding:0.6rem 0.4rem; color:#00C853; font-weight:600; font-size:0.78rem; white-space:nowrap;">${c.dispatch || "Aguardando"}</td>
+                         </tr>`;
+        });
+        
+        tabelaHtml += `</tbody></table>`;
+        caixaConteudo.innerHTML = tabelaHtml;
+      }
+      document.getElementById("modal-logistica-detalhe").style.display = "flex";
+    }
+
+
+
+    // 🎯 NOVA ENGINE DE EXPANSÃO SEGURA: Gerencia o abre/fecha lendo os metadados da célula de forma síncrona
+    function alternarTextoOcorrencia(elementoCelular) {
+      const statusAberto = elementoCelular.getAttribute("data-open");
+      const textoCurto = elementoCelular.getAttribute("data-short");
+      const textoCompleto = elementoCelular.getAttribute("data-full");
+
+      if (statusAberto === "1") {
+        // Se já estava aberto, recolhe voltando para o resumo em texto simples
+        elementoCelular.setAttribute("data-open", "0");
+        elementoCelular.innerHTML = textoCurto;
+      } else {
+        // Se estava fechado, expande criando o bloco visual destacado sem quebrar aspas
+        elementoCelular.setAttribute("data-open", "1");
+        elementoCelular.innerHTML = `<div style="white-space:normal; background:var(--purple-dim); color:var(--purple-neon); padding:0.4rem; border-radius:6px; font-weight:600; line-height:1.3; margin-top:2px;">${textoCompleto}</div>`;
+      }
+    }
+
+
+
+    // 🎯 CONTROLADOR ATUALIZADO: Filtra e lista APENAS as cargas que NÃO foram despachadas (Busca via Sigla UF)
+    function abrirJanelaLogisticaEspecial(ufSigla, tipoPeriodo) {
+      // 🎯 CONVERSÃO SEGURO: Força o parâmetro a virar String pura antes de rodar o find
+      const siglaTextoStr = String(ufSigla).trim().toUpperCase();
+
+      // Localiza o estado correto de forma unívoca na array global RAM, matando o bug pós-filtro
+      const ufAlvo = cacheDadosEcosistema.find(uf => uf.sigla.toUpperCase() === siglaTextoStr);
+      if (!ufAlvo) return;
+
+      const da = ufAlvo.detalhes_analiticos || { dia: { concluidos: [], parciais: [], pendentes: [] }, backlog: { concluidos: [], parciais: [], pendentes: [] } };
+      
+      // Consolida todos os baldes daquela sessão (Dia ou Backlog)
+      const todosPeriodo = [...da[tipoPeriodo].concluidos, ...da[tipoPeriodo].parciais, ...da[tipoPeriodo].pendentes];
+      
+      // Filtra estritamente as cargas onde o dispatch está vazio, nulo ou "Aguardando"
+      const listaPresos = todosPeriodo.filter(c => !c.dispatch || c.dispatch === "Aguardando" || c.dispatch.toString().trim() === "");
+
+      // Altera dinamicamente o título do modal para alertar a gestão
+      document.getElementById("modal-logistica-titulo").innerText = ufAlvo.nome_estado + " (" + ufAlvo.sigla + ") - DISPATCH NÃO INFORMADO " + tipoPeriodo.toUpperCase();
+      const caixaConteudo = document.getElementById("modal-logistica-conteudo");
+
+      if (listaPresos.length === 0) {
+        caixaConteudo.innerHTML = "<div style='text-align:center; padding-top:4rem; color:var(--status-green); font-weight:600;'>🚀 100% Despachado! Nenhuma carga presa nesta sessão.</div>";
+      } else {
+        // =========================================================================
+        // 📊 BALDE ANALÍTICO DE SHARE EM RAM: SOMA VOLUMETRIA DE PRESOS POR TRANSP
+        // =========================================================================
+        let mapaTransp = {};
+        listaPresos.forEach(c => {
+          let tName = c.transp || "Não Informada";
+          mapaTransp[tName] = (mapaTransp[tName] || 0) + 1;
+        });
+
+        // Montagem do contêiner horizontal de pílulas estatísticas críticas em vermelho
+        let htmlKpis = '<div class="modal-kpi-container">' +
+                          '<div class="modal-kpi-pill" style="border-left-color: var(--status-red);">' +
+                            '<span class="modal-kpi-title">Total Retido</span>' +
+                            '<span class="modal-kpi-value" style="color:var(--status-red);">' + listaPresos.length + ' Rom.</span>' +
+                          '</div>';
+        
+        for (let t in mapaTransp) {
+          let pct = Math.round((mapaTransp[t] / listaPresos.length) * 100);
+          let nomeExibicaoTransp = t.length > 18 ? t.substring(0,16) + "..." : t;
+          
+          htmlKpis += '<div class="modal-kpi-pill">' +
+                         '<span class="modal-kpi-title" title="' + t + '">' + nomeExibicaoTransp + '</span>' +
+                         '<span class="modal-kpi-value">' +
+                           '<span>' + mapaTransp[t] + '</span>' +
+                           '<span style="color:var(--status-red);">' + pct + '%</span>' +
+                         '</span>' +
+                       '</div>';
+        }
+        htmlKpis += '</div>';
+
+        let tabelaHtml = htmlKpis + "<table style='width:100%; border-collapse:collapse; font-size:0.82rem; text-align:left;'>" +
+                            "<thead>" +
+                              "<tr style='border-bottom:2px solid rgba(0,0,0,0.08); color:var(--status-red); font-weight:700;'>" +
+                                "<th style='padding:0.6rem 0.4rem;'>📦 ID ROMANEIO PRESO</th>" +
+                                "<th style='padding:0.6rem 0.4rem;'>🚛 TRANSPORTADORA</th>" +
+                                "<th style='padding:0.6rem 0.4rem; text-align:center;'>📋 PEDIDOS</th>" +
+                                "<th style='padding:0.6rem 0.4rem;'>📅 DT IMPORT</th>" +
+                                "<th style='padding:0.6rem 0.4rem;'>⚠️ STATUS DISPATCH</th>" +
+                              "</tr>" +
+                            "</thead>" +
+                            "<tbody>";
+        
+        listaPresos.forEach(c => {
+          tabelaHtml += "<tr style='border-bottom:1px solid rgba(0,0,0,0.04); font-weight:500; vertical-align:top;'>" +
+                           "<td style='padding:0.6rem 0.4rem; font-weight:700; font-family:monospace; color:var(--text-main);'>" + (c.romaneio || "Sem ID") + "</td>" +
+                           "<td style='padding:0.6rem 0.4rem; color:#333;'>" + (c.transp || "Não Informada") + "</td>" +
+                           "<td style='padding:0.6rem 0.4rem; text-align:center; font-weight:600; color:var(--purple-neon);'>" + (c.pedidos || 0) + "</td>" +
+                           "<td style='padding:0.6rem 0.4rem; color:var(--text-muted); font-size:0.78rem;'> " + (c.dt_import || "Sem registro") + "</td>" +
+                           "<td style='padding:0.6rem 0.4rem; color:var(--status-red); font-weight:700; font-size:0.78rem;'>🚨 " + (c.dispatch || "Aguardando") + "</td>" +
+                         "</tr>";
+        });
+        
+        tabelaHtml += "</tbody></table>";
+        caixaConteudo.innerHTML = tabelaHtml;
+      }
+      document.getElementById("modal-logistica-detalhe").style.display = "flex";
+    }
+
+
+
+    // 🎯 CONTROLADOR DE EXCEÇÕES: Monta a tabela forense com 2 colunas exclusivas para auditoria de falhas
+    function abrirJanelaFalhasProcesso(ufSigla, campoListaPropriedade) {
+      const siglaTextoStr = String(ufSigla).trim().toUpperCase();
+      const ufAlvo = cacheDadosEcosistema.find(uf => uf.sigla.toUpperCase() === siglaTextoStr);
+      if (!ufAlvo) return;
+
+      const da = ufAlvo.detalhes_analiticos || {};
+      const listaFalhas = da[campoListaPropriedade] || [];
+      
+      const nomeMétricaCard = campoListaPropriedade === 'falhas_contingencia_lista' ? 'CONTINGÊNCIA / FALHAS' : 'LIMPEZA / FALHAS';
+      document.getElementById("modal-logistica-titulo").innerText = ufAlvo.nome_estado + " (" + ufAlvo.sigla + ") - " + nomeMétricaCard;
+      const caixaConteudo = document.getElementById("modal-logistica-conteudo");
+
+      if (listaFalhas.length === 0) {
+        caixaConteudo.innerHTML = "<div style='text-align:center; padding-top:4rem; color:var(--status-green); font-weight:600;'>🚀 Processo 100% íntegro! Nenhuma falha detectada nesta categoria.</div>";
+      } else {
+        let tabelaHtml = "<table style='width:100%; border-collapse:collapse; font-size:0.82rem; text-align:left;'>" +
+                            "<thead>" +
+                              "<tr style='border-bottom:2px solid rgba(0,0,0,0.08); color:var(--status-red); font-weight:700;'>" +
+                                "<th style='padding:0.6rem 0.4rem; width: 160px;'>📦 ID ROMANEIO</th>" +
+                                "<th style='padding:0.6rem 0.4rem;'>⚠️ CRITÉRIO / FALHA DO PROCESSO</th>" +
+                              "</tr>" +
+                            "</thead>" +
+                            "<tbody>";
+        
+        // 🎯 LEITOR INLINE FIXO: Insere a descrição do critério direto no navegador, poupando a rede
+        listaFalhas.forEach(f => {
+          let descricaoFalhaFixa = campoListaPropriedade === 'falhas_contingencia_lista' 
+            ? "Carga concluída no passado, mas a aba secundária física não foi deletada." 
+            : "Carga concluída em lote anterior, mas a linha permanece ativa na aba ROMANEIOS.";
+
+          tabelaHtml += "<tr style='border-bottom:1px solid rgba(0,0,0,0.04); font-weight:500; vertical-align:top;'>" +
+                           "<td style='padding:0.6rem 0.4rem; font-weight:700; font-family:monospace; color:var(--text-main);'>" + (f.romaneio || "Sem ID") + "</td>" +
+                           "<td style='padding:0.6rem 0.4rem; color:var(--text-muted); line-height: 1.4;'>" + descricaoFalhaFixa + "</td>" +
+                        "</tr>";
+        });
+        
+        tabelaHtml += "</tbody></table>";
+        caixaConteudo.innerHTML = tabelaHtml;
+      }
+      document.getElementById("modal-logistica-detalhe").style.display = "flex";
+    }
+
+
+
+
+  
+  
+  
+    
+
+// =========================================================================
+// 🚀 ENGINE DE BUSCA RELÂMPAGO (INPUT DE TEXTO REATIVO)
+// =========================================================================
+function buscarUfPorTexto() {
+  // Reseta visualmente as pílulas regionais para "Todos" para evitar colisão de filtros
+  document.querySelectorAll('.btn-filter').forEach(btn => btn.classList.remove('active'));
+  const btnTodos = document.querySelector(".filter-row button:nth-child(2)"); // Pega o botão 'Todos' pós-input
+  if (btnTodos) btnTodos.classList.add('active');
+
+  const termoDigitado = document.getElementById("input-busca-uf").value.trim().toUpperCase();
+
+  // Se o campo de busca estiver vazio, restaura a malha completa original do cache RAM
+  if (termoDigitado === "") {
+    renderizarCards(cacheDadosEcosistema);
+    return;
+  }
+
+  // Filtra de forma instantânea batendo o termo contra o Nome do Estado ou Sigla UF
+  const resultadoFiltrado = cacheDadosEcosistema.filter(uf => {
+    const nomeEstado = uf.nome_estado ? uf.nome_estado.toUpperCase() : "";
+    const siglaEstado = uf.sigla ? uf.sigla.toUpperCase() : "";
+    return (nomeEstado.indexOf(termoDigitado) !== -1 || siglaEstado.indexOf(termoDigitado) !== -1);
+  });
+
+  // Redesenha apenas os estados localizados na busca
+  renderizarCards(resultadoFiltrado);
+}
+
+
+    function calcularKPIsDinâmicos(listaUfs) {
+      let somaOrfas = 0; let somaFaltantes = 0; let somaCriticos = 0;
+      listaUfs.forEach(uf => {
+        somaOrfas += parseInt(uf.orfas) || 0;
+        somaFaltantes += parseInt(uf.faltantes) || 0;
+        somaCriticos += parseInt(uf.criticos) || 0;
+      });
+      document.getElementById("kpi-total-sheets").innerText = listaUfs.length;
+      document.getElementById("kpi-total-resgatadas").innerText = somaOrfas;
+      document.getElementById("kpi-total-faltantes").innerText = somaFaltantes;
+      document.getElementById("kpi-total-criticos").innerText = somaCriticos;
+    }
+
+    function forcarResgateLocal(sigla, idPlanilha) {
+      if (confirm(`⚠️ ATENÇÃO: Deseja disparar a contingência sênior em lote para resgatar bipes órfãos de ${sigla} agora?\n\nIsso injetará os bipes na Master DETALHADO e excluirá as abas locais residuais.`)) {
+        
+        const modal = document.getElementById("modal-resgate");
+        const barra = document.getElementById("barra-progresso");
+        const terminal = document.getElementById("terminal-logs");
+        
+        document.getElementById("modal-titulo").innerText = `Operação de Contingência: ${sigla}`;
+        modal.style.display = "flex";
+        barra.style.width = "10%";
+        barra.style.background = "var(--purple-neon)";
+        
+        terminal.innerHTML = `[${new Date().toLocaleTimeString()}] 📡 Estabelecendo canal com a Planilha de Controle...<br>`;
+        
+        setTimeout(() => {
+          barra.style.width = "35%";
+          terminal.innerHTML += `[${new Date().toLocaleTimeString()}] <span class="log-info">[INFO]</span> Abrindo arquivo regional via ID do Drive...<br>`;
+          terminal.scrollTop = terminal.scrollHeight;
+        }, 600);
+
+        setTimeout(() => {
+          barra.style.width = "60%";
+          terminal.innerHTML += `[${new Date().toLocaleTimeString()}] <span class="log-info">[INFO]</span> Invocando função real executarResgateEExpurgoAbasOrfas...<br>`;
+          terminal.scrollTop = terminal.scrollHeight;
+          
+          fetch(`${WEB_APP_URL}?action=forcarResgateUf&id_planilha=${idPlanilha}`)
+            .then(response => response.json())
+            .then(res => {
+              if (res.success) {
+                barra.style.width = "100%";
+                barra.style.background = "var(--status-green)";
+                terminal.innerHTML += `[${new Date().toLocaleTimeString()}] <span style="color: #00E676;">[SUCESSO]</span> ${res.message}<br>`;
+                terminal.innerHTML += `[${new Date().toLocaleTimeString()}] 🏁 Sincronização concluída. Painel local atualizado em lote.`;
+                terminal.scrollTop = terminal.scrollHeight;
+
+                // 🚀 ATUALIZAÇÃO EM BACKGROUND SILENCIOSA (SEM CONCORRÊNCIA DE MODAL!)
+                // Puxa o espelho do banco atualizado sem reabrir a caixa de logs por cima
+                fetch(WEB_APP_URL + "?action=obterDiagnosticoGlobal")
+                  .then(r => r.json())
+                  .then(dados => {
+                    if (dados.success) {
+                      cacheDadosEcosistema = dados.data; // Atualiza o cache global da RAM
+                      renderizarCards(dados.data);       // Redesenha os cards com o estado zerado
+                      calcularKPIDinamicos(dados.data);  // Recalcula as caixas de somas do topo
+                    }
+                  });
+
+              } else {
+                barra.style.width = "100%";
+                barra.style.background = "var(--status-red)";
+                terminal.innerHTML += `[${new Date().toLocaleTimeString()}] <span class="log-err">[ERRO]</span> ${res.error}<br>`;
+                terminal.scrollTop = terminal.scrollHeight;
+              }
+            })
+            .catch(err => {
+              barra.style.width = "100%";
+              barra.style.background = "var(--status-red)";
+              terminal.innerHTML += `[${new Date().toLocaleTimeString()}] <span class="log-err">[CRÍTICO]</span> Falha crítica na rede API: ${err}<br>`;
+              terminal.scrollTop = terminal.scrollHeight;
+            });
+        }, 1400);
+      }
+    }
+
+        // 🎯 ASSINATURA DA ENGINE DE SOMA (VÍNCULO COM O D MAIÚSCULO)
+    function calcularKPIDinamicos(listaUfs) {
+      let somaOrfas = 0;
+      let somaFaltantes = 0;
+      let somaCriticos = 0;
+      
+      // 📊 TELEMETRIA DE GARGALO REAL: Mapeia o share de transportadoras no Backlog Crítico
+      let mapaGargaloTransp = {};
+      let totalGeralRomaneiosNoGargalo = 0;
+      
+      // Set global de segurança para blindar a unicidade física dos Romaneios em RAM
+      let romaneiosProcessadosSet = new Set();
+
+      listaUfs.forEach(uf => {
+        // Puxa as propriedades exatas mapeadas pelo JSON do doGet
+        somaOrfas += parseInt(uf.orfas) || 0;
+        somaFaltantes += parseInt(uf.faltantes) || 0;
+        somaCriticos += parseInt(uf.criticos) || 0;
+
+        const da = uf.detalhes_analiticos || {};
+        const backlogUf = da.backlog || { concluidos: [], parciais: [], pendentes: [] };
+        
+        // 🎯 CRITÉRIO PURIFICADO: Une estritamente os baldes de PARCIAIS e PENDENTES (O atraso real)
+        const frotasGargaloBacklog = [...backlogUf.parciais, ...backlogUf.pendentes];
+
+        frotasGargaloBacklog.forEach(c => {
+          let idRom = c.romaneio ? c.romaneio.toString().trim().toUpperCase() : "";
+          if (!idRom) return;
+
+          // Garante que o romaneio seja único no cálculo geral do ecossistema
+          if (!romaneiosProcessadosSet.has(idRom)) {
+            romaneiosProcessadosSet.add(idRom);
+            
+            let nomeTransp = c.transp || "Não Informada";
+            mapaGargaloTransp[nomeTransp] = (mapaGargaloTransp[nomeTransp] || 0) + 1;
+            totalGeralRomaneiosNoGargalo++;
+          }
+        });
+      });
+
+      // Injeta fisicamente os totais acumulados nas caixas de vidro do topo
+      document.getElementById("kpi-total-sheets").innerText = listaUfs.length;
+      document.getElementById("kpi-total-resgatadas").innerText = somaOrfas;
+      document.getElementById("kpi-total-faltantes").innerText = somaFaltantes;
+      document.getElementById("kpi-total-criticos").innerText = somaCriticos;
+
+      // 🏆 CORRIDA DOS DADOS: Eleger a transportadora com maior número de travamentos reais
+      let transportadoraVilã = "Nenhuma / 100% OK";
+      let maiorVolumePreso = 0;
+      let percentualDeCulpa = 0;
+
+      for (let t in mapaGargaloTransp) {
+        if (mapaGargaloTransp[t] > maiorVolumePreso) {
+          maiorVolumePreso = mapaGargaloTransp[t];
+          transportadoraVilã = t;
+        }
+      }
+
+      // 🎯 CORREÇÃO CIRÚRGICA: Nomes de variáveis unificados e síncronos na RAM
+      if (totalGeralRomaneiosNoGargalo > 0 && maiorVolumePreso > 0) {
+        percentualDeCulpa = Math.round((maiorVolumePreso / totalGeralRomaneiosNoGargalo) * 100);
+      }
+
+      // Estampa os dados macro fixos direto no novo quinto card do topo
+      const elementoNome = document.getElementById("kpi-transp-nome");
+      const elementoMetrica = document.getElementById("kpi-transp-metrica");
+      const card = document.getElementById("card-transp-critica");
+
+      if (card && elementoNome && elementoMetrica) {
+        if (maiorVolumePreso > 0) {
+          elementoNome.innerText = transportadoraVilã.toUpperCase();
+          elementoMetrica.innerHTML = `<span style="color:var(--status-red); font-weight:700;">${maiorVolumePreso} Rom.</span> <span style="color:var(--text-muted); font-weight:400; margin:0 0.15rem;">/</span> ${percentualDeCulpa}% do total retido`;
+          card.style.background = "rgba(255, 23, 68, 0.02)";
+        } else {
+          elementoNome.innerText = "100% OPERACIONAL";
+          elementoMetrica.innerText = "Zero pendências";
+          card.style.background = "var(--bg-card)";
+        }
+      }
+
+      // =========================================================================
+      // 🏗️ MONITOR DE INFRAESTRUTURA: PROCESSAMENTO DUPLO (TEMP & DATABASE)
+      // =========================================================================
+      // =========================================================================
+      // 🏗️ MONITOR DE INFRAESTRUTURA: PROCESSAMENTO DUPLO COM INFLEXÃO DE BARRAS
+      // =========================================================================
+      if (listaUfs.length > 0) {
+        const primeiraUf = listaUfs[0];
+        const daSatelite = primeiraUf.detalhes_analiticos || {};
+        
+        const cellTemp = daSatelite.celulas_dispatch_temp || 0;
+        const cellDb   = daSatelite.celulas_dispatch_database || 0;
+        
+        // Equações de Share de teto matemático contra o limite de 10 milhões do Google Sheets
+        const pctTemp = Math.min(Math.round((cellTemp / 10000000) * 100), 100);
+        const pctDb   = Math.min(Math.round((cellDb / 10000000) * 100), 100);
+        
+        const txtTemp = cellTemp >= 1000000 ? (cellTemp / 1000000).toFixed(1) + 'M' : (cellTemp / 1000).toFixed(0) + 'K';
+        const txtDb   = cellDb >= 1000000 ? (cellDb / 1000000).toFixed(1) + 'M' : (cellDb / 1000).toFixed(0) + 'K';
+
+        // Definição reativa de cores por nível crítico
+        let corTemp = 'var(--status-green)'; if (pctTemp >= 90) corTemp = 'var(--status-red)'; else if (pctTemp >= 70) corTemp = '#F57C00';
+        let corDb   = 'var(--status-green)'; if (pctDb >= 90) corDb = 'var(--status-red)'; else if (pctDb >= 70) corDb = '#F57C00';
+
+        // Captura síncrona dos seletores de texto e de largura física das barras
+        const txtElTemp = document.getElementById("kpi-sat-temp-txt");
+        const barElTemp = document.getElementById("kpi-sat-temp-bar");
+        const txtElDb   = document.getElementById("kpi-sat-db-txt");
+        const barElDb   = document.getElementById("kpi-sat-db-bar");
+        
+        // Injeta os dados textuais e realiza a flexão de largura e cor nativa (CSS Inline)
+        if (txtElTemp && barElTemp) {
+          txtElTemp.innerHTML = `<span style="color:${corTemp};">${txtTemp}</span> <span style="font-weight:500; color:var(--text-muted); font-size:0.7rem;">(${pctTemp}%)</span>`;
+          barElTemp.style.width = pctTemp + "%";
+          barElTemp.style.backgroundColor = corTemp;
+        }
+        if (txtElDb && barElDb) {
+          txtElDb.innerHTML = `<span style="color:${corDb};">${txtDb}</span> <span style="font-weight:500; color:var(--text-muted); font-size:0.7rem;">(${pctDb}%)</span>`;
+          barElDb.style.width = pctDb + "%";
+          barElDb.style.backgroundColor = corDb;
+        }
+      }
+    }
+
+
+
+
+
+    // =========================================================================
+    // 📊 ENGINE UNIVERSAL DE EXPORTAÇÃO PARA CSV (EXCEL WHITE MODE PRO)
+    // =========================================================================
+    // =========================================================================
+    // 📊 ENGINE UNIVERSAL DE EXPORTAÇÃO PARA CSV (LEITOR METADADOS ANTI-CORTE)
+    // =========================================================================
+    function exportarTabelaModalParaCSV() {
+      const tabela = document.querySelector("#modal-logistica-conteudo table");
+      if (!tabela) {
+        alert("⚠️ Nenhuma tabela de dados encontrada para exportação.");
+        return;
+      }
+
+      const linhasTabela = tabela.querySelectorAll("tr");
+      let linhasCsv = [];
+
+      linhasTabela.forEach(linhaFisica => {
+        let colunasLinha = [];
+        const celulas = linhaFisica.querySelectorAll("th, td");
+        
+        celulas.forEach(celula => {
+          let textoCelula = celula.innerText.trim();
+          
+          // 🎯 ENGENHARIA ANTI-CORTE: Se a célula tiver o atributo 'data-full', 
+          // nós extraímos o relatório 100% completo da memória RAM, ignorando as reticências (...) da tela!
+          if (celula.hasAttribute("data-full")) {
+            textoCelula = celula.getAttribute("data-full").trim();
+          }
+
+          // Tratamento de segurança para Excel: escapa aspas duplas e quebras de linha
+          textoCelula = textoCelula.replace(/"/g, '""').replace(/\n/g, " ");
+          colunasLinha.push('"' + textoCelula + '"');
+        });
+
+        // Junta as colunas usando o ponto e vírgula (;), padrão oficial do Excel no Brasil
+        linhasCsv.push(colunasLinha.join(";"));
+      });
+
+      // Une as linhas com quebra de página universal e força o encoding UTF-8 (BOM) contra erros de acentuação
+      const conteudoFinalCsv = "\uFEFF" + linhasCsv.join("\n");
+      
+      // Captura o título do modal para batizar o arquivo de forma inteligente
+      let tituloModal = document.getElementById("modal-logistica-titulo").innerText.trim();
+      let nomeArquivoPronto = "SmartCargas_" + tituloModal.replace(/[^a-zA-Z0-9]/g, "_") + ".csv";
+
+      // Dispara o gatilho invisível de download nativo do navegador
+      const blobDados = new Blob([conteudoFinalCsv], { type: "text/csv;charset=utf-8;" });
+      const linkDownload = document.createElement("a");
+      
+      if (navigator.msSaveBlob) { 
+        navigator.msSaveBlob(blobDados, nomeArquivoPronto);
+      } else {
+        linkDownload.href = URL.createObjectURL(blobDados);
+        linkDownload.setAttribute("download", nomeArquivoPronto);
+        linkDownload.style.visibility = "hidden";
+        document.body.appendChild(linkDownload);
+        linkDownload.click();
+        document.body.removeChild(linkDownload);
+      }
+    }
+
+    // 🎯 REVISOR DE INFRAESTRUTURA: Monta a listagem limpa contendo apenas ID, Conferência e Importação
+    function abrirJanelaEstruturaDetalhe(ufSigla, propriedadeLista, textoTitulo) {
+      const siglaTextoStr = String(ufSigla).trim().toUpperCase();
+      const ufAlvo = cacheDadosEcosistema.find(uf => uf.sigla.toUpperCase() === siglaTextoStr);
+      if (!ufAlvo) return;
+
+      const da = ufAlvo.detalhes_analiticos || {};
+      const registrosEstrutura = da[propriedadeLista] || [];
+
+      document.getElementById("modal-logistica-titulo").innerText = ufAlvo.nome_estado + " (" + ufAlvo.sigla + ") - " + textoTitulo;
+      const caixaConteudo = document.getElementById("modal-logistica-conteudo");
+
+      if (registrosEstrutura.length === 0) {
+        caixaConteudo.innerHTML = "<div style='text-align:center; padding-top:4rem; color:var(--status-green); font-weight:500;'>Nenhum registro ativo encontrado nesta categoria.</div>";
+      } else {
+        let tabelaHtml = "<table style='width:100%; border-collapse:collapse; font-size:0.82rem; text-align:left;'>" +
+                            "<thead>" +
+                              "<tr style='border-bottom:2px solid rgba(0,0,0,0.08); color:var(--purple-neon); font-weight:700;'>" +
+                                "<th style='padding:0.6rem 0.4rem;'>📦 ID ROMANEIO</th>" +
+                                "<th style='padding:0.6rem 0.4rem;'>📅 DT CONFERÊNCIA (TRANSP)</th>" +
+                                "<th style='padding:0.6rem 0.4rem;'>📅 DT IMPORTAÇÃO (OPERADOR)</th>" +
+                              "</tr>" +
+                            "</thead>" +
+                            "<tbody>";
+
+        registrosEstrutura.forEach(item => {
+          tabelaHtml += "<tr style='border-bottom:1px solid rgba(0,0,0,0.04); font-weight:500;'>" +
+                           "<td style='padding:0.6rem 0.4rem; font-weight:700; font-family:monospace;'>" + (item.romaneio || "Sem ID") + "</td>" +
+                           "<td style='padding:0.6rem 0.4rem; color:var(--text-muted);'>" + (item.conferencia || "Sem registro") + "</td>" +
+                           "<td style='padding:0.6rem 0.4rem; color:#111;'>" + (item.dt_import || "Sem registro") + "</td>" +
+                         "</tr>";
+        });
+
+        tabelaHtml += "</tbody></table>";
+        caixaConteudo.innerHTML = tabelaHtml;
+      }
+      document.getElementById("modal-logistica-detalhe").style.display = "flex";
+    }
+
+        // 🎯 RELATÓRIO EXECUTIVO GLOBAL: Consolida o ranking completo de gargalos do Backlog nacional
+    // 🎯 RELATÓRIO EXECUTIVO GLOBAL: Ranking purificado baseado estritamente em Backlog Parciais e Pendentes
+    function abrirModalRankingTranspBacklog() {
+      if (!cacheDadosEcosistema || cacheDadosEcosistema.length === 0) return;
+
+      let consolidadoRanking = {};
+      let totalGeralNoGargalo = 0;
+      
+      // Set de segurança para garantir a unicidade absoluta no mapeamento do modal
+      let romaneiosProcessadosModalSet = new Set();
+
+      // Fase 1: Agrupa dados destrinchados por Transportadora + UF baseado estritamente no gargalo real
+      cacheDadosEcosistema.forEach(uf => {
+        const da = uf.detalhes_analiticos || {};
+        const backlogUf = da.backlog || { concluidos: [], parciais: [], pendentes: [] };
+        
+        // Regra de Ouro: Une estritamente os baldes de atraso real (Parciais + Pendentes)
+        const frotasAtrasadas = [...backlogUf.parciais, ...backlogUf.pendentes];
+
+        frotasAtrasadas.forEach(c => {
+          let idRom = c.romaneio ? c.romaneio.toString().trim().toUpperCase() : "";
+          if (!idRom) return;
+
+          // Processa apenas frotas exclusivas para dar match 100% com o KPI do topo (Ex: Alpha com 74)
+          if (!romaneiosProcessadosModalSet.has(idRom)) {
+            romaneiosProcessadosModalSet.add(idRom);
+            
+            let t = c.transp || "Não Informada";
+            totalGeralNoGargalo++;
+
+            if (!consolidadoRanking[t]) {
+              consolidadoRanking[t] = { total: 0, detalheUfs: {} };
+            }
+            consolidadoRanking[t].total++;
+            consolidadoRanking[t].detalheUfs[uf.sigla] = (consolidadoRanking[t].detalheUfs[uf.sigla] || 0) + 1;
+          }
+        });
+      });
+
+      document.getElementById("modal-logistica-titulo").innerText = "TRANSPORTADORAS: RANKING DO BACKLOG NACIONAL";
+      const caixaConteudo = document.getElementById("modal-logistica-conteudo");
+
+      if (totalGeralNoGargalo === 0) {
+        caixaConteudo.innerHTML = "<div style='text-align:center; padding-top:4rem; color:var(--status-green); font-weight:600;'>🚀 Ecossistema Limpo! Nenhuma transportadora com pendência ativa no Backlog.</div>";
+        document.getElementById("modal-logistica-detalhe").style.display = "flex";
+        return;
+      }
+
+      // Converte o objeto para array e ordena do maior gargalo para o menor
+      let arrayOrdenada = [];
+      for (let t in consolidadoRanking) {
+        arrayOrdenada.push({ nome: t, dados: consolidadoRanking[t] });
+      }
+      arrayOrdenada.sort((a, b) => b.dados.total - a.dados.total);
+
+      // Injeta a pílula de volumetria macro unificada no topo do modal
+      let htmlKpisModal = `<div class="modal-kpi-container">
+                            <div class="modal-kpi-pill" style="border-left-color: var(--status-red);">
+                              <span class="modal-kpi-title">Massa Crítica de Backlog</span>
+                              <span class="modal-kpi-value" style="color:var(--status-red);">${totalGeralNoGargalo} Romaneios Retidos</span>
+                            </div>
+                          </div>`;
+
+      let tabelaHtml = htmlKpisModal + "<table style='width:100%; border-collapse:collapse; font-size:0.82rem; text-align:left;'>" +
+                          "<thead>" +
+                            "<tr style='border-bottom:2px solid rgba(0,0,0,0.08); color:var(--status-red); font-weight:700;'> " +
+                              "<th style='padding:0.6rem 0.4rem;'>🚛 TRANSPORTADORA</th>" +
+                              "<th style='padding:0.6rem 0.4rem; text-align:center;'>📦 TOTAL DE ROMANEIOS</th>" +
+                              "<th style='padding:0.6rem 0.4rem; text-align:center;'>📊 SHARE DE PARTICIPAÇÃO</th>" +
+                              "<th style='padding:0.6rem 0.4rem;'>🗺️ IMPACTO GEOGRÁFICO DISTRIBUÍDO (UF / RECORRÊNCIAS)</th>" +
+                            "</tr>" +
+                          "</thead>" +
+                          "<tbody>";
+
+      arrayOrdenada.forEach(item => {
+        let pctShare = Math.round((item.dados.total / totalGeralNoGargalo) * 100);
+        
+        // Monta o mapa de tags estilizadas contendo o fatiamento por estado (Ex: SP: 12 | RS: 4)
+        let stringUfsSegmentadas = [];
+        for (let estado in item.dados.detalheUfs) {
+          stringUfsSegmentadas.push(`<span style="background:var(--bg-global); padding:0.15rem 0.4rem; border-radius:4px; font-weight:600; margin-right:0.3rem; display:inline-block; font-size:0.75rem;">${estado}: <span style="color:var(--purple-neon);">${item.dados.detalheUfs[estado]}</span></span>`);
+        }
+
+        tabelaHtml += `<tr style="border-bottom:1px solid rgba(0,0,0,0.04); font-weight:500; vertical-align:top;">
+                         <td style="padding:0.75rem 0.4rem; font-weight:700; color:var(--text-main);">${item.nome.toUpperCase()}</td>
+                         <td style="padding:0.75rem 0.4rem; text-align:center; font-weight:700; color:var(--status-red); font-size:0.9rem;">${item.dados.total}</td>
+                         <td style="padding:0.75rem 0.4rem; text-align:center; font-weight:700; color:var(--text-muted);">${pctShare}%</td>
+                         <td style="padding:0.75rem 0.4rem; line-height:1.6;">${stringUfsSegmentadas.join("")}</td>
+                       </tr>`;
+      });
+
+      tabelaHtml += "</tbody></table>";
+      caixaConteudo.innerHTML = tabelaHtml;
+      document.getElementById("modal-logistica-detalhe").style.display = "flex";
+    }
+    
+  </script>
+</body>
+</html>
