@@ -1393,11 +1393,12 @@ function buscarUfPorTexto() {
       }
       arrayOrdenada.sort((a, b) => b.dados.total - a.dados.total);
 
-      // 📥 INJEÇÃO DUPLA NO RANKING: Total de Romaneios Retidos e Volumes de Pedidos do País
+      // 📥 INJEÇÃO TRIPARTITE PURIFICADA: Alinha o título com a unidade de medida correta
       let htmlKpisModal = `<div class="modal-kpi-container">
                             <div class="modal-kpi-pill" style="border-left-color: var(--status-red);"><span class="modal-kpi-title">Massa Crítica Backlog</span><span class="modal-kpi-value" style="color:var(--status-red);">${totalGeralPresos} Romaneios</span></div>
-                            <div class="modal-kpi-pill" style="border-left-color: #F57C00;"><span class="modal-kpi-title">Pedidos Retidos (País)</span><span class="modal-kpi-value" style="color:#F57C00;">${totalGeralPedidosPresos} Volumes</span></div>
+                            <div class="modal-kpi-pill" style="border-left-color: #F57C00;"><span class="modal-kpi-title">Pedidos Retidos (País)</span><span class="modal-kpi-value" style="color:#F57C00;">${totalGeralPedidosPresos} Pedidos</span></div>
                           </div>`;
+
 
       let tabelaHtml = htmlKpisModal + "<table style='width:100%; border-collapse:collapse; font-size:0.82rem; text-align:left;'>" +
                           "<thead><tr style='border-bottom:2px solid rgba(0,0,0,0.08); color:var(--status-red); font-weight:700;'><th style='padding:0.6rem 0.4rem;'>🚛 TRANSPORTADORA</th><th style='padding:0.6rem 0.4rem; text-align:center;'>📦 TOTAL DE ROMANEIOS</th><th style='padding:0.6rem 0.4rem; text-align:center;'>📊 SHARE (ROM)</th><th style='padding:0.6rem 0.4rem;'>🗺️ IMPACTO GEOGRÁFICO DISTRIBUÍDO (UF / RECORRÊNCIAS)</th></tr></thead><tbody>";
