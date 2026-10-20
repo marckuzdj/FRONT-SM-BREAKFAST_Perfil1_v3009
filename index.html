@@ -834,103 +834,6 @@
 
 
 
-    // 🌟 CONTROLADOR REATIVO EXPANDIDO: Abre a lista forense com as 6 colunas logísticas em RAM
-    // 🌟 INTERFACE EXPANDIDA: Monta o grid forense com as 6 colunas logísticas em RAM
-    // 🌟 INTERFACE TOTALMENTE BLINDADA: Monta a grade analítica de 6 colunas livre de quebras por aspas
-    // 🌟 INTERFACE EXPANDIDA BLINDADA: Busca por Sigla UF para erradicar o bug pós-filtro regional
-    function abrirJanelaLogistica(ufSigla, tipoPeriodo, categoriaStatus) {
-      // 🎯 CONVERSÃO SEGURO: Força o parâmetro recebido a virar String pura antes de rodar o toUpperCase()
-      const siglaTextoStr = String(ufSigla).trim().toUpperCase();
-      
-      const ufAlvo = cacheDadosEcosistema.find(uf => uf.sigla.toUpperCase() === siglaTextoStr);
-      if (!ufAlvo) return;
-    
-      const listaCargas = ufAlvo.detalhes_analiticos[tipoPeriodo][categoriaStatus] || [];
-      document.getElementById("modal-logistica-titulo").innerText = `${ufAlvo.nome_estado} (${ufAlvo.sigla}) - ${tipoPeriodo.toUpperCase()} [${categoriaStatus.toUpperCase()}]`;
-      const caixaConteudo = document.getElementById("modal-logistica-conteudo");
-    
-      if (listaCargas.length === 0) {
-        caixaConteudo.innerHTML = `<div style="text-align:center; padding-top:4rem; color:var(--text-muted); font-weight:500;">Nenhum romaneio ativo mapeado nesta categoria.</div>`;
-      } else {
-        // =========================================================================
-        // 📊 BALDE ANALÍTICO DE SHARE EM RAM: SOMA VOLUMETRIA DE TRANSPORTADORAS
-        // =========================================================================
-        let mapaTransp = {};
-        listaCargas.forEach(c => {
-          let tName = c.transp || "Não Informada";
-          mapaTransp[tName] = (mapaTransp[tName] || 0) + 1;
-        });
-
-        // Montagem do contêiner horizontal de pílulas estatísticas
-        let htmlKpis = `<div class="modal-kpi-container">
-                          <div class="modal-kpi-pill">
-                            <span class="modal-kpi-title">Total Geral</span>
-                            <span class="modal-kpi-value"><span>${listaCargas.length} Rom.</span></span>
-                          </div>`;
-        
-        for (let t in mapaTransp) {
-          let pct = Math.round((mapaTransp[t] / listaCargas.length) * 100);
-          htmlKpis += `<div class="modal-kpi-pill">
-                         <span class="modal-kpi-title" title="${t}">${t.length > 18 ? t.substring(0,16) + '...' : t}</span>
-                         <span class="modal-kpi-value">
-                           <span>${mapaTransp[t]}</span>
-                           <span style="color:var(--purple-neon);">${pct}%</span>
-                         </span>
-                       </div>`;
-        }
-        htmlKpis += `</div>`;
-
-        let tabelaHtml = htmlKpis + `<table style="width:100%; border-collapse:collapse; font-size:0.82rem; text-align:left;">
-                            <thead>
-                              <tr style="border-bottom:2px solid rgba(0,0,0,0.08); color:var(--purple-neon); font-weight:700;">
-                                <th style="padding:0.6rem 0.4rem;">📦 ID ROMANEIO</th>
-                                <th style="padding:0.6rem 0.4rem;">🚛 TRANSPORTADORA</th>
-                                <th style="padding:0.6rem 0.4rem; text-align:center;">📋 PEDIDOS</th>
-                                <th style="padding:0.6rem 0.4rem;">⚠️ INTERCORRÊNCIA</th>
-                                <th style="padding:0.6rem 0.4rem;">📅 DT IMPORT</th>
-                                <th style="padding:0.6rem 0.4rem;">⚡ DISPATCH</th>
-                              </tr>
-                            </thead>
-                            <tbody>`;
-        
-        listaCargas.forEach(c => {
-          let textoCompleto = c.intercorrencia || "Sem ocorrências";
-          let textoOcorrencia = textoCompleto;
-          
-          if (textoCompleto.length > 40) {
-            textoOcorrencia = textoCompleto.substring(0, 37) + "...";
-          }
-    
-          let textoTituloEscapado = textoCompleto.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-          let textoCurtoEscapado = textoOcorrencia.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-    
-          tabelaHtml += `<tr style="border-bottom:1px solid rgba(0,0,0,0.04); font-weight:500; vertical-align:top;">
-                           <td style="padding:0.6rem 0.4rem; font-weight:700; font-family:monospace;">${c.romaneio || "Sem ID"}</td>
-                           <td style="padding:0.6rem 0.4rem; color:#333;">${c.transp || "Não Informada"}</td>
-                           <td style="padding:0.6rem 0.4rem; text-align:center; font-weight:600; color:var(--purple-neon);">${c.pedidos || 0}</td>
-                           
-                           <td style="padding:0.6rem 0.4rem; max-width:320px; color:var(--text-muted); font-size:0.78rem; cursor:pointer;" 
-                               title="${textoTituloEscapado}" 
-                               data-short="${textoCurtoEscapado}"
-                               data-full="${textoTituloEscapado}"
-                               data-open="0"
-                               onclick="alternarTextoOcorrencia(this)">
-                             ${textoOcorrencia}
-                           </td>
-                           
-                           <td style="padding:0.6rem 0.4rem; color:#111; font-size:0.78rem; white-space:nowrap;">${c.dt_import || "Sem registro"}</td>
-                           <td style="padding:0.6rem 0.4rem; color:#00C853; font-weight:600; font-size:0.78rem; white-space:nowrap;">${c.dispatch || "Aguardando"}</td>
-                         </tr>`;
-        });
-        
-        tabelaHtml += `</tbody></table>`;
-        caixaConteudo.innerHTML = tabelaHtml;
-      }
-      document.getElementById("modal-logistica-detalhe").style.display = "flex";
-    }
-
-
-
     // 🎯 NOVA ENGINE DE EXPANSÃO SEGURA: Gerencia o abre/fecha lendo os metadados da célula de forma síncrona
     function alternarTextoOcorrencia(elementoCelular) {
       const statusAberto = elementoCelular.getAttribute("data-open");
@@ -949,88 +852,106 @@
     }
 
 
-
-    // 🎯 CONTROLADOR ATUALIZADO: Filtra e lista APENAS as cargas que NÃO foram despachadas (Busca via Sigla UF)
-    function abrirJanelaLogisticaEspecial(ufSigla, tipoPeriodo) {
-      // 🎯 CONVERSÃO SEGURO: Força o parâmetro a virar String pura antes de rodar o find
-      const siglaTextoStr = String(ufSigla).trim().toUpperCase();
-
-      // Localiza o estado correto de forma unívoca na array global RAM, matando o bug pós-filtro
-      const ufAlvo = cacheDadosEcosistema.find(uf => uf.sigla.toUpperCase() === siglaTextoStr);
+    // =========================================================================
+    // 🎯 1. JANELA LOGÍSTICA PADRÃO: CALIBRADA PARA RENDERIZAR ROMANEIOS E PEDIDOS
+    // =========================================================================
+    function abrirJanelaLogistica(ufSigla, tipoPeriodo, categoriaStatus) {
+      if (!cacheDadosEcosistema) return;
+      const ufAlvo = cacheDadosEcosistema.find(u => u.sigla === ufSigla);
       if (!ufAlvo) return;
 
-      const da = ufAlvo.detalhes_analiticos || { dia: { concluidos: [], parciais: [], pendentes: [] }, backlog: { concluidos: [], parciais: [], pendentes: [] } };
-      
-      // Consolida todos os baldes daquela sessão (Dia ou Backlog)
-      const todosPeriodo = [...da[tipoPeriodo].concluidos, ...da[tipoPeriodo].parciais, ...da[tipoPeriodo].pendentes];
-      
-      // Filtra estritamente as cargas onde o dispatch está vazio, nulo ou "Aguardando"
-      const listaPresos = todosPeriodo.filter(c => !c.dispatch || c.dispatch === "Aguardando" || c.dispatch.toString().trim() === "");
+      const da = ufAlvo.detalhes_analiticos || {};
+      const listaFrotas = da[tipoPeriodo] ? da[tipoPeriodo][categoriaStatus] || [] : [];
 
-      // Altera dinamicamente o título do modal para alertar a gestão
-      document.getElementById("modal-logistica-titulo").innerText = ufAlvo.nome_estado + " (" + ufAlvo.sigla + ") - DISPATCH NÃO INFORMADO " + tipoPeriodo.toUpperCase();
+      document.getElementById("modal-logistica-titulo").innerText = `DETALHE OPERACIONAL: ${ufAlvo.nome_estado} (${ufSigla}) -> ${tipoPeriodo.toUpperCase()} / ${categoriaStatus.toUpperCase()}`;
       const caixaConteudo = document.getElementById("modal-logistica-conteudo");
 
-      if (listaPresos.length === 0) {
-        caixaConteudo.innerHTML = "<div style='text-align:center; padding-top:4rem; color:var(--status-green); font-weight:600;'>🚀 100% Despachado! Nenhuma carga presa nesta sessão.</div>";
-      } else {
-        // =========================================================================
-        // 📊 BALDE ANALÍTICO DE SHARE EM RAM: SOMA VOLUMETRIA DE PRESOS POR TRANSP
-        // =========================================================================
-        let mapaTransp = {};
-        listaPresos.forEach(c => {
-          let tName = c.transp || "Não Informada";
-          mapaTransp[tName] = (mapaTransp[tName] || 0) + 1;
-        });
-
-        // Montagem do contêiner horizontal de pílulas estatísticas críticas em vermelho
-        let htmlKpis = '<div class="modal-kpi-container">' +
-                          '<div class="modal-kpi-pill" style="border-left-color: var(--status-red);">' +
-                            '<span class="modal-kpi-title">Total Retido</span>' +
-                            '<span class="modal-kpi-value" style="color:var(--status-red);">' + listaPresos.length + ' Rom.</span>' +
-                          '</div>';
-        
-        for (let t in mapaTransp) {
-          let pct = Math.round((mapaTransp[t] / listaPresos.length) * 100);
-          let nomeExibicaoTransp = t.length > 18 ? t.substring(0,16) + "..." : t;
-          
-          htmlKpis += '<div class="modal-kpi-pill">' +
-                         '<span class="modal-kpi-title" title="' + t + '">' + nomeExibicaoTransp + '</span>' +
-                         '<span class="modal-kpi-value">' +
-                           '<span>' + mapaTransp[t] + '</span>' +
-                           '<span style="color:var(--status-red);">' + pct + '%</span>' +
-                         '</span>' +
-                       '</div>';
-        }
-        htmlKpis += '</div>';
-
-        let tabelaHtml = htmlKpis + "<table style='width:100%; border-collapse:collapse; font-size:0.82rem; text-align:left;'>" +
-                            "<thead>" +
-                              "<tr style='border-bottom:2px solid rgba(0,0,0,0.08); color:var(--status-red); font-weight:700;'>" +
-                                "<th style='padding:0.6rem 0.4rem;'>📦 ID ROMANEIO PRESO</th>" +
-                                "<th style='padding:0.6rem 0.4rem;'>🚛 TRANSPORTADORA</th>" +
-                                "<th style='padding:0.6rem 0.4rem; text-align:center;'>📋 PEDIDOS</th>" +
-                                "<th style='padding:0.6rem 0.4rem;'>📅 DT IMPORT</th>" +
-                                "<th style='padding:0.6rem 0.4rem;'>⚠️ STATUS DISPATCH</th>" +
-                              "</tr>" +
-                            "</thead>" +
-                            "<tbody>";
-        
-        listaPresos.forEach(c => {
-          tabelaHtml += "<tr style='border-bottom:1px solid rgba(0,0,0,0.04); font-weight:500; vertical-align:top;'>" +
-                           "<td style='padding:0.6rem 0.4rem; font-weight:700; font-family:monospace; color:var(--text-main);'>" + (c.romaneio || "Sem ID") + "</td>" +
-                           "<td style='padding:0.6rem 0.4rem; color:#333;'>" + (c.transp || "Não Informada") + "</td>" +
-                           "<td style='padding:0.6rem 0.4rem; text-align:center; font-weight:600; color:var(--purple-neon);'>" + (c.pedidos || 0) + "</td>" +
-                           "<td style='padding:0.6rem 0.4rem; color:var(--text-muted); font-size:0.78rem;'> " + (c.dt_import || "Sem registro") + "</td>" +
-                           "<td style='padding:0.6rem 0.4rem; color:var(--status-red); font-weight:700; font-size:0.78rem;'>🚨 " + (c.dispatch || "Aguardando") + "</td>" +
-                         "</tr>";
-        });
-        
-        tabelaHtml += "</tbody></table>";
-        caixaConteudo.innerHTML = tabelaHtml;
+      if (listaFrotas.length === 0) {
+        caixaConteudo.innerHTML = "<div style='text-align:center; padding-top:2rem; color:var(--text-muted); font-weight:500;'>Zero movimentações registradas nesta categoria.</div>";
+        document.getElementById("modal-logistica-detalhe").style.display = "flex";
+        return;
       }
+
+      // 📊 CONTADORES EM RAM: Soma frotas e a volumetria física de pedidos fracionados
+      let totalRomaneios = listaFrotas.length;
+      let totalPedidosFisicos = 0;
+      listaFrotas.forEach(c => { totalPedidosFisicos += parseInt(c.pedidos) || 0; });
+
+      // 📥 INJEÇÃO DUPLA PREMIUM: Duas pílulas horizontais simétricas no topo do modal
+      let htmlKpisModal = '<div class="modal-kpi-container">' +
+                            '<div class="modal-kpi-pill"><span class="modal-kpi-title">Massa Ativa</span><span class="modal-kpi-value">' + totalRomaneios + ' Romaneios</span></div>' +
+                            '<div class="modal-kpi-pill" style="border-left-color: #F57C00;"><span class="modal-kpi-title">Carga Fracionada</span><span class="modal-kpi-value" style="color: #F57C00;">' + totalPedidosFisicos + ' Pedidos</span></div>' +
+                          '</div>';
+
+      let tabelaHtml = htmlKpisModal + "<table style='width:100%; border-collapse:collapse; font-size:0.82rem; text-align:left;'>" +
+                          "<thead><tr style='border-bottom:2px solid rgba(0,0,0,0.08); color:var(--purple-neon); font-weight:700;'><th style='padding:0.4rem;'>📦 ID ROMANEIO</th><th style='padding:0.4rem;'>🚛 TRANSPORTADORA</th><th style='padding:0.4rem; text-align:center;'>🛒 PEDIDOS</th><th style='padding:0.4rem;'>📅 DT IMPORT</th><th style='padding:0.4rem;'>🚨 INTERCORRÊNCIA EXECUTIVA</th></tr></thead><tbody>";
+
+      listaFrotas.forEach(c => {
+        tabelaHtml += "<tr style='border-bottom:1px solid rgba(0,0,0,0.04); font-weight:500;'> " +
+                         "<td style='padding:0.5rem 0.4rem; font-weight:700; color:var(--text-main);'>" + (c.romaneio || "Sem ID") + "</td>" +
+                         "<td style='padding:0.5rem 0.4rem; text-transform:uppercase;'>" + (c.transp || "Não Informado") + "</td>" +
+                         "<td style='padding:0.5rem 0.4rem; text-align:center; font-weight:700; color:#000;'>" + (c.pedidos || 0) + "</td>" +
+                         "<td style='padding:0.5rem 0.4rem; color:var(--text-muted);'>" + (c.dt_import || "Sem registro") + "</td>" +
+                         "<td style='padding:0.5rem 0.4rem; color:var(--status-red); font-size:0.78rem; font-weight:600;'>" + (c.intercorrencia || "Nenhuma ocorrência") + "</td>" +
+                       "</tr>";
+      });
+
+      tabelaHtml += "</tbody></table>";
+      caixaConteudo.innerHTML = tabelaHtml;
       document.getElementById("modal-logistica-detalhe").style.display = "flex";
     }
+
+    // =========================================================================
+    // 🎯 2. JANELA LOGÍSTICA ESPECIAL: FILTRA RETIDOS NAS DOCAS (SEM DESPACHO)
+    // =========================================================================
+    function abrirJanelaLogisticaEspecial(ufSigla, tipoPeriodo) {
+      if (!cacheDadosEcosistema) return;
+      const ufAlvo = cacheDadosEcosistema.find(u => u.sigla === ufSigla);
+      if (!ufAlvo) return;
+
+      const da = ufAlvo.detalhes_analiticos || {};
+      const subBalde = da[tipoPeriodo] || { concluidos: [], parciais: [], pendentes: [] };
+      const todasCargas = [...subBalde.concluidos, ...subBalde.parciais, ...subBalde.pendentes];
+      
+      const frotasRetidas = todasCargas.filter(c => !c.dispatch || c.dispatch === "Aguardando" || c.dispatch.toString().trim() === "");
+
+      document.getElementById("modal-logistica-titulo").innerText = `CARGAS RETIDAS NAS DOCAS: ${ufAlvo.nome_estado} (${ufSigla}) -> ${tipoPeriodo.toUpperCase()}`;
+      const caixaConteudo = document.getElementById("modal-logistica-conteudo");
+
+      if (frotasRetidas.length === 0) {
+        caixaConteudo.innerHTML = "<div style='text-align:center; padding-top:2rem; color:var(--status-green); font-weight:600;'>🚀 Docas Limpas! 100% dos romaneios despachados nesta sessão.</div>";
+        document.getElementById("modal-logistica-detalhe").style.display = "flex";
+        return;
+      }
+
+      let totalRomaneiosPresos = frotasRetidas.length;
+      let totalPedidosPresos = 0;
+      frotasRetidas.forEach(c => { totalPedidosPresos += parseInt(c.pedidos) || 0; });
+
+      let htmlKpisModal = '<div class="modal-kpi-container">' +
+                            '<div class="modal-kpi-pill" style="border-left-color: var(--status-red);"><span class="modal-kpi-title">Retidos Docas</span><span class="modal-kpi-value" style="color: var(--status-red);">' + totalRomaneiosPresos + ' Romaneios</span></div>' +
+                            '<div class="modal-kpi-pill" style="border-left-color: #F57C00;"><span class="modal-kpi-title">Pedidos Travados</span><span class="modal-kpi-value" style="color: #F57C00;">' + totalPedidosPresos + ' Pedidos</span></div>' +
+                          '</div>';
+
+      let tabelaHtml = htmlKpisModal + "<table style='width:100%; border-collapse:collapse; font-size:0.82rem; text-align:left;'> " +
+                          "<thead><tr style='border-bottom:2px solid rgba(0,0,0,0.08); color:var(--status-red); font-weight:700;'><th style='padding:0.4rem;'>📦 ID ROMANEIO</th><th style='padding:0.4rem;'>🚛 TRANSPORTADORA</th><th style='padding:0.4rem; text-align:center;'>🛒 PEDIDOS</th><th style='padding:0.4rem;'>📅 DT IMPORT</th><th style='padding:0.4rem;'>📡 CARIMBO DISPATCH</th></tr></thead><tbody>";
+
+      frotasRetidas.forEach(c => {
+        tabelaHtml += "<tr style='border-bottom:1px solid rgba(0,0,0,0.04); font-weight:500;'> " +
+                         "<td style='padding:0.5rem 0.4rem; font-weight:700; color:var(--text-main);'>" + (c.romaneio || "Sem ID") + "</td>" +
+                         "<td style='padding:0.5rem 0.4rem; text-transform:uppercase;'>" + (c.transp || "Não Informado") + "</td>" +
+                         "<td style='padding:0.5rem 0.4rem; text-align:center; font-weight:700; color:#000;'>" + (c.pedidos || 0) + "</td>" +
+                         "<td style='padding:0.5rem 0.4rem; color:var(--text-muted);'>" + (c.dt_import || "Sem registro") + "</td>" +
+                         "<td style='padding:0.5rem 0.4rem; color:var(--text-muted); font-weight:600;'>" + (c.dispatch || "Aguardando Despacho") + "</td>" +
+                       "</tr>";
+      });
+
+      tabelaHtml += "</tbody></table>";
+      caixaConteudo.innerHTML = tabelaHtml;
+      document.getElementById("modal-logistica-detalhe").style.display = "flex";
+    }
+
+
 
 
 
@@ -1419,91 +1340,77 @@ function buscarUfPorTexto() {
       document.getElementById("modal-logistica-detalhe").style.display = "flex";
     }
 
-        // 🎯 RELATÓRIO EXECUTIVO GLOBAL: Consolida o ranking completo de gargalos do Backlog nacional
-    // 🎯 RELATÓRIO EXECUTIVO GLOBAL: Ranking purificado baseado estritamente em Backlog Parciais e Pendentes
+    // =========================================================================
+    // 🎯 3. RANKING DE TRANSPORTADORAS CRÍTICAS: COMPILADO DE ATRASOS DO BACKLOG
+    // =========================================================================
     function abrirModalRankingTranspBacklog() {
       if (!cacheDadosEcosistema || cacheDadosEcosistema.length === 0) return;
 
       let consolidadoRanking = {};
-      let totalGeralNoGargalo = 0;
-      
-      // Set de segurança para garantir a unicidade absoluta no mapeamento do modal
+      let totalGeralPresos = 0;
+      let totalGeralPedidosPresos = 0; 
       let romaneiosProcessadosModalSet = new Set();
 
-      // Fase 1: Agrupa dados destrinchados por Transportadora + UF baseado estritamente no gargalo real
       cacheDadosEcosistema.forEach(uf => {
         const da = uf.detalhes_analiticos || {};
         const backlogUf = da.backlog || { concluidos: [], parciais: [], pendentes: [] };
-        
-        // Regra de Ouro: Une estritamente os baldes de atraso real (Parciais + Pendentes)
         const frotasAtrasadas = [...backlogUf.parciais, ...backlogUf.pendentes];
 
         frotasAtrasadas.forEach(c => {
           let idRom = c.romaneio ? c.romaneio.toString().trim().toUpperCase() : "";
           if (!idRom) return;
 
-          // Processa apenas frotas exclusivas para dar match 100% com o KPI do topo (Ex: Alpha com 74)
           if (!romaneiosProcessadosModalSet.has(idRom)) {
             romaneiosProcessadosModalSet.add(idRom);
             
             let t = c.transp || "Não Informada";
-            totalGeralNoGargalo++;
+            let qtdPedidosNum = parseInt(c.pedidos) || 0;
+            totalGeralPresos++;
+            totalGeralPedidosPresos += qtdPedidosNum; 
 
             if (!consolidadoRanking[t]) {
-              consolidadoRanking[t] = { total: 0, detalheUfs: {} };
+              consolidadoRanking[t] = { total: 0, totalPedidos: 0, detalheUfs: {} };
             }
             consolidadoRanking[t].total++;
+            consolidadoRanking[t].totalPedidos += qtdPedidosNum;
             consolidadoRanking[t].detalheUfs[uf.sigla] = (consolidadoRanking[t].detalheUfs[uf.sigla] || 0) + 1;
           }
         });
       });
 
-      document.getElementById("modal-logistica-titulo").innerText = "TRANSPORTADORAS: RANKING DO BACKLOG NACIONAL";
+      document.getElementById("modal-logistica-titulo").innerText = "RANKING EXECUTIVO: PARTICIPACAO NO GARGALO DO BACKLOG NACIONAL";
       const caixaConteudo = document.getElementById("modal-logistica-conteudo");
 
-      if (totalGeralNoGargalo === 0) {
+      if (totalGeralPresos === 0) {
         caixaConteudo.innerHTML = "<div style='text-align:center; padding-top:4rem; color:var(--status-green); font-weight:600;'>🚀 Ecossistema Limpo! Nenhuma transportadora com pendência ativa no Backlog.</div>";
         document.getElementById("modal-logistica-detalhe").style.display = "flex";
         return;
       }
 
-      // Converte o objeto para array e ordena do maior gargalo para o menor
       let arrayOrdenada = [];
       for (let t in consolidadoRanking) {
         arrayOrdenada.push({ nome: t, dados: consolidadoRanking[t] });
       }
       arrayOrdenada.sort((a, b) => b.dados.total - a.dados.total);
 
-      // Injeta a pílula de volumetria macro unificada no topo do modal
+      // 📥 INJEÇÃO DUPLA NO RANKING: Total de Romaneios Retidos e Volumes de Pedidos do País
       let htmlKpisModal = `<div class="modal-kpi-container">
-                            <div class="modal-kpi-pill" style="border-left-color: var(--status-red);">
-                              <span class="modal-kpi-title">Massa Crítica de Backlog</span>
-                              <span class="modal-kpi-value" style="color:var(--status-red);">${totalGeralNoGargalo} Romaneios Retidos</span>
-                            </div>
+                            <div class="modal-kpi-pill" style="border-left-color: var(--status-red);"><span class="modal-kpi-title">Massa Crítica Backlog</span><span class="modal-kpi-value" style="color:var(--status-red);">${totalGeralPresos} Romaneios</span></div>
+                            <div class="modal-kpi-pill" style="border-left-color: #F57C00;"><span class="modal-kpi-title">Pedidos Retidos (País)</span><span class="modal-kpi-value" style="color:#F57C00;">${totalGeralPedidosPresos} Volumes</span></div>
                           </div>`;
 
       let tabelaHtml = htmlKpisModal + "<table style='width:100%; border-collapse:collapse; font-size:0.82rem; text-align:left;'>" +
-                          "<thead>" +
-                            "<tr style='border-bottom:2px solid rgba(0,0,0,0.08); color:var(--status-red); font-weight:700;'> " +
-                              "<th style='padding:0.6rem 0.4rem;'>🚛 TRANSPORTADORA</th>" +
-                              "<th style='padding:0.6rem 0.4rem; text-align:center;'>📦 TOTAL DE ROMANEIOS</th>" +
-                              "<th style='padding:0.6rem 0.4rem; text-align:center;'>📊 SHARE DE PARTICIPAÇÃO</th>" +
-                              "<th style='padding:0.6rem 0.4rem;'>🗺️ IMPACTO GEOGRÁFICO DISTRIBUÍDO (UF / RECORRÊNCIAS)</th>" +
-                            "</tr>" +
-                          "</thead>" +
-                          "<tbody>";
+                          "<thead><tr style='border-bottom:2px solid rgba(0,0,0,0.08); color:var(--status-red); font-weight:700;'><th style='padding:0.6rem 0.4rem;'>🚛 TRANSPORTADORA</th><th style='padding:0.6rem 0.4rem; text-align:center;'>📦 TOTAL DE ROMANEIOS</th><th style='padding:0.6rem 0.4rem; text-align:center;'>📊 SHARE (ROM)</th><th style='padding:0.6rem 0.4rem;'>🗺️ IMPACTO GEOGRÁFICO DISTRIBUÍDO (UF / RECORRÊNCIAS)</th></tr></thead><tbody>";
 
       arrayOrdenada.forEach(item => {
-        let pctShare = Math.round((item.dados.total / totalGeralNoGargalo) * 100);
-        
-        // Monta o mapa de tags estilizadas contendo o fatiamento por estado (Ex: SP: 12 | RS: 4)
+        let pctShare = Math.round((item.dados.total / totalGeralPresos) * 100);
         let stringUfsSegmentadas = [];
         for (let estado in item.dados.detalheUfs) {
           stringUfsSegmentadas.push(`<span style="background:var(--bg-global); padding:0.15rem 0.4rem; border-radius:4px; font-weight:600; margin-right:0.3rem; display:inline-block; font-size:0.75rem;">${estado}: <span style="color:var(--purple-neon);">${item.dados.detalheUfs[estado]}</span></span>`);
         }
 
         tabelaHtml += `<tr style="border-bottom:1px solid rgba(0,0,0,0.04); font-weight:500; vertical-align:top;">
-                         <td style="padding:0.75rem 0.4rem; font-weight:700; color:var(--text-main);">${item.nome.toUpperCase()}</td>
+                         <td style="padding:0.75rem 0.4rem; font-weight:700; color:var(--text-main);">${item.nome.toUpperCase()} <span style="font-weight:400; color:var(--text-muted); font-size:0.72rem; display:block; margin-top:0.1rem;">📦 ${item.dados.totalPedidos} pedidos retidos</span></td>
                          <td style="padding:0.75rem 0.4rem; text-align:center; font-weight:700; color:var(--status-red); font-size:0.9rem;">${item.dados.total}</td>
                          <td style="padding:0.75rem 0.4rem; text-align:center; font-weight:700; color:var(--text-muted);">${pctShare}%</td>
                          <td style="padding:0.75rem 0.4rem; line-height:1.6;">${stringUfsSegmentadas.join("")}</td>
@@ -1514,6 +1421,7 @@ function buscarUfPorTexto() {
       caixaConteudo.innerHTML = tabelaHtml;
       document.getElementById("modal-logistica-detalhe").style.display = "flex";
     }
+
     
   </script>
 </body>
