@@ -1341,7 +1341,7 @@ function buscarUfPorTexto() {
     }
 
     // =========================================================================
-    // 🎯 3. RANKING DE TRANSPORTADORAS CRÍTICAS: COMPILADO DE ATRASOS DO BACKLOG
+    // 🎯 3. RANKING DE TRANSPORTADORAS CRÍTICAS: COMPILADO COM INTERVALO DE DATAS (NOVO)
     // =========================================================================
     function abrirModalRankingTranspBacklog() {
       if (!cacheDadosEcosistema || cacheDadosEcosistema.length === 0) return;
@@ -1350,6 +1350,12 @@ function buscarUfPorTexto() {
       let totalGeralPresos = 0;
       let totalGeralPedidosPresos = 0; 
       let romaneiosProcessadosModalSet = new Set();
+
+      // 📅 VARIÁVEIS DE CALENDÁRIO: Rastreadores de limites cronológicos em RAM
+      let menorDataMili = Infinity;
+      let maiorDataMili = -Infinity;
+      let menorDataTexto = "";
+      let maiorDataTexto = "";
 
       cacheDadosEcosistema.forEach(uf => {
         const da = uf.detalhes_analiticos || {};
@@ -1368,6 +1374,36 @@ function buscarUfPorTexto() {
             totalGeralPresos++;
             totalGeralPedidosPresos += qtdPedidosNum; 
 
+            // 🔍 PARSER DE DATA FORENSE: Converte o texto dd/MM/yyyy HH:mm:ss para milissegundos para ordenar
+            if (c.dt_import && c.dt_import !== "Sem Registro" && c.dt_import !== "Sem registro") {
+              try {
+                // Divide a string para isolar a data do horário (pega apenas dd/MM/yyyy)
+                let dataApenasTexto = c.dt_import.split(" ")[0].trim();
+                let partes = dataApenasTexto.split("/");
+                if (partes.length === 3) {
+                  let dia = parseInt(partes[0], 10);
+                  let mes = parseInt(partes[1], 10) - 1; // Base 0 no JS
+                  let ano = parseInt(partes[2], 10);
+                  
+                  let dataInstancia = new Date(ano, mes, dia);
+                  let tempoMili = dataInstancia.getTime();
+
+                  if (!isNaN(tempoMili)) {
+                    if (tempoMili < menorDataMili) {
+                      menorDataMili = tempoMili;
+                      menorDataTexto = dataApenasTexto;
+                    }
+                    if (tempoMili > maiorDataMili) {
+                      maiorDataMili = tempoMili;
+                      maiorDataTexto = dataApenasTexto;
+                    }
+                  }
+                }
+              } catch (errData) {
+                console.warn("⚠️ Falha ao processar data de ordenação do ranking: " + c.dt_import);
+              }
+            }
+
             if (!consolidadoRanking[t]) {
               consolidadoRanking[t] = { total: 0, totalPedidos: 0, detalheUfs: {} };
             }
@@ -1378,7 +1414,15 @@ function buscarUfPorTexto() {
         });
       });
 
-      document.getElementById("modal-logistica-titulo").innerText = "RANKING EXECUTIVO: PARTICIPACAO NO GARGALO DO BACKLOG NACIONAL";
+      // 📥 FORMATADOR DO INTERVALO DE DATAS DINÂMICO
+      let rangeDatasTexto = "";
+      if (menorDataTexto && maiorDataTexto) {
+        // Se as duas datas forem iguais, mostra apenas uma, se forem diferentes carimba o range (dd/MM/yyyy a dd/MM/yyyy)
+        rangeDatasTexto = menorDataTexto === maiorDataTexto ? ` [${menorDataTexto}]` : ` [${menorDataTexto} a ${maiorDataTexto}]`;
+      }
+
+      // Injeta o título master contendo o range relativo apurado em RAM
+      document.getElementById("modal-logistica-titulo").innerText = `RANKING EXECUTIVO: GARGALO DO BACKLOG NACIONAL${rangeDatasTexto}`;
       const caixaConteudo = document.getElementById("modal-logistica-conteudo");
 
       if (totalGeralPresos === 0) {
@@ -1393,14 +1437,12 @@ function buscarUfPorTexto() {
       }
       arrayOrdenada.sort((a, b) => b.dados.total - a.dados.total);
 
-      // 📥 INJEÇÃO TRIPARTITE PURIFICADA: Alinha o título com a unidade de medida correta
       let htmlKpisModal = `<div class="modal-kpi-container">
                             <div class="modal-kpi-pill" style="border-left-color: var(--status-red);"><span class="modal-kpi-title">Massa Crítica Backlog</span><span class="modal-kpi-value" style="color:var(--status-red);">${totalGeralPresos} Romaneios</span></div>
-                            <div class="modal-kpi-pill" style="border-left-color: #F57C00;"><span class="modal-kpi-title">Pedidos Retidos</span><span class="modal-kpi-value" style="color:#F57C00;">${totalGeralPedidosPresos} Pedidos</span></div>
+                            <div class="modal-kpi-pill" style="border-left-color: #F57C00;"><span class="modal-kpi-title">Pedidos Retidos (País)</span><span class="modal-kpi-value" style="color:#F57C00;">${totalGeralPedidosPresos} Pedidos</span></div>
                           </div>`;
 
-
-      let tabelaHtml = htmlKpisModal + "<table style='width:100%; border-collapse:collapse; font-size:0.82rem; text-align:left;'>" +
+      let tabelaHtml = htmlKpisModal + "<table style='width:100%; border-collapse:collapse; font-size:0.82rem; text-align:left;'> " +
                           "<thead><tr style='border-bottom:2px solid rgba(0,0,0,0.08); color:var(--status-red); font-weight:700;'><th style='padding:0.6rem 0.4rem;'>🚛 TRANSPORTADORA</th><th style='padding:0.6rem 0.4rem; text-align:center;'>📦 TOTAL DE ROMANEIOS</th><th style='padding:0.6rem 0.4rem; text-align:center;'>📊 SHARE (ROM)</th><th style='padding:0.6rem 0.4rem;'>🗺️ IMPACTO GEOGRÁFICO DISTRIBUÍDO (UF / RECORRÊNCIAS)</th></tr></thead><tbody>";
 
       arrayOrdenada.forEach(item => {
@@ -1422,6 +1464,7 @@ function buscarUfPorTexto() {
       caixaConteudo.innerHTML = tabelaHtml;
       document.getElementById("modal-logistica-detalhe").style.display = "flex";
     }
+
 
     
   </script>
